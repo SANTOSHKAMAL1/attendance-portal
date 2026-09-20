@@ -384,9 +384,8 @@
     document.getElementById('ovInCount').textContent = inPeople.length;
     document.getElementById('ovInList').innerHTML = inPeople.length ? inPeople.map(p => {
       const hasCoords = p.login_lat != null && p.login_lng != null;
-      const badge = p.at_office
-        ? '<span class="ov-locbadge office">On campus</span>'
-        : '<span class="ov-locbadge remote">Remote</span>';
+      const badge = '<span class="ov-locbadge">' +
+        (p.login_address || 'Location recorded') + '</span>';
       const maplink = hasCoords
         ? ` · <a href="https://www.google.com/maps/search/?api=1&query=${p.login_lat},${p.login_lng}" target="_blank" rel="noopener">map ↗</a>`
         : '';

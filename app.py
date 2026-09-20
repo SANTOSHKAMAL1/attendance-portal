@@ -8,7 +8,6 @@ from datetime import datetime, timedelta, date
 import pytz
 import io
 import csv
-import math
 import os
 import re
 import random
@@ -61,17 +60,16 @@ login_manager.login_view = "login"
 mail = Mail(app)
 
 # ─────────────────────────────────────────────────────────────
-#  PRIMARY DUTY STATION
-#  Every "where are you" label in the product comes from here.
+#  ORGANISATION
+#  There is no fixed duty station and no geofence. Attendance is
+#  recorded wherever the person is working: the coordinates they
+#  sign in from are captured and reverse-geocoded onto the record,
+#  and are never used to allow or refuse a sign-in. Face checks are
+#  controlled per user by an administrator, not by distance.
 # ─────────────────────────────────────────────────────────────
-OFFICE_NAME  = "OJIX"
-OFFICE_SHORT = "Head Office"
-OFFICE_CITY  = "Bengaluru"
-
-OFFICE_LAT = 12.9248224
-OFFICE_LNG = 77.5702351
-ALLOWED_RADIUS_KM = 0.5       # 500 metres = "at office"
-FACE_REQUIRED_RADIUS_KM = 50  # Beyond this, must be in office
+ORG_NAME  = "OJIX"
+ORG_LEGAL = "OJIX Engineering & Technology LLP"
+ORG_CITY  = "Bengaluru"
 
 IST = pytz.timezone('Asia/Kolkata')
 DEFAULT_WORK_HOURS = 8
@@ -434,21 +432,6 @@ def get_address_from_coords(lat, lng, timeout=1.5):
 
 
 
-def haversine_km(lat1, lon1, lat2, lon2):
-    R = 6371.0
-    phi1, phi2 = math.radians(lat1), math.radians(lat2)
-    dphi    = math.radians(lat2 - lat1)
-    dlambda = math.radians(lon2 - lon1)
-    a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
-    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-
-
-def is_at_office(lat, lng) -> bool:
-    if lat is None or lng is None:
-        return False
-    return haversine_km(lat, lng, OFFICE_LAT, OFFICE_LNG) <= ALLOWED_RADIUS_KM
-
-
 def calculate_shift_hours(target_hours):
     return target_hours / 2
 
@@ -587,30 +570,18 @@ def check_location():
     except (TypeError, ValueError):
         return jsonify({"error": "Invalid coordinates"}), 400
 
-    client_radius = data.get("radius")
-    try:
-        effective_radius = float(client_radius) if client_radius else ALLOWED_RADIUS_KM
-        effective_radius = max(0.05, min(5.0, effective_radius))
-    except (TypeError, ValueError):
-        effective_radius = ALLOWED_RADIUS_KM
-
-    dist      = haversine_km(lat, lng, OFFICE_LAT, OFFICE_LNG)
-    at_office = dist <= effective_radius
-    address   = get_address_from_coords(lat, lng)
+    address = get_address_from_coords(lat, lng)
 
     # Check if this user has face requirement set by admin
     user_doc = mongo.db.users.find_one({"_id": ObjectId(current_user.id)})
     face_required_by_admin = user_doc.get("face_required", False) if user_doc else False
 
     return jsonify({
-        "at_office":               at_office,
-        "distance_km":             round(dist, 3),
-        "face_required":           face_required_by_admin,   # now purely admin-driven
+        "face_required":           face_required_by_admin,
         "face_required_by_admin":  face_required_by_admin,
         "address":                 address,
-        "office_lat":              OFFICE_LAT,
-        "office_lng":              OFFICE_LNG,
-        "allowed_radius_km":       effective_radius,
+        "lat":                     lat,
+        "lng":                     lng,
     })
 
 
@@ -817,8 +788,6 @@ def verify_face():
         data        = request.get_json() or {}
         b64_image   = data.get("image")
         device_info = data.get("device_info", {})
-        at_office   = data.get("at_office", False)
-
         if not b64_image:
             return jsonify({"error": "No image provided"}), 400
 
@@ -854,7 +823,6 @@ def verify_face():
             "date":           ist_now.date().isoformat(),
             "match_result":   is_match,
             "match_distance": round(distance, 4),
-            "at_office":      at_office,
             "face_image_b64": snapshot_b64,
             "face_thumb_b64": img_to_b64_jpeg(face_crop, quality=60) if face_crop is not None else None,
             "device_info": {
@@ -933,18 +901,6 @@ def attendance_login():
     if lat is None or lng is None:
         return jsonify({"error": "Location required"}), 400
 
-    dist      = haversine_km(lat, lng, OFFICE_LAT, OFFICE_LNG)
-    at_office = dist <= ALLOWED_RADIUS_KM
-
-    if dist > FACE_REQUIRED_RADIUS_KM:
-        address = get_address_from_coords(lat, lng)
-        return jsonify({
-            "error": "Not within allowed radius",
-            "distance_km": round(dist, 4),
-            "current_location": {"lat": lat, "lng": lng, "address": address},
-            "office_location":  {"lat": OFFICE_LAT, "lng": OFFICE_LNG}
-        }), 403
-
     ist_now   = get_ist_now()
     today     = ist_now.date().isoformat()
     login_type  = data.get("login_type", "normal")
@@ -1003,7 +959,6 @@ def attendance_login():
         "session_number":   session_number,
         "work_hours_target": work_hours_target,
         "shift_target_hours": shift_hours,
-        "at_office":        at_office,
         "face_snapshot_id": snapshot_id,
         "face_required":    user.get("face_required", False),
         "device_info": {
@@ -1133,7 +1088,7 @@ def attendance_login():
                       <tr>
                         <td style="background-color: #F8F9FA; border-top: 1px solid #E9ECEF; padding: 18px 30px; text-align: center;">
                           <div style="font-size: 12px; font-weight: 600; color: #494F57;">OJIX Engineering & Technology LLP</div>
-                          <div style="font-size: 11px; color: #868D96; margin-top: 3px;">Head Office, Bengaluru · Attendance Portal</div>
+                          <div style="font-size: 11px; color: #868D96; margin-top: 3px;">Bengaluru · Attendance Portal</div>
                         </td>
                       </tr>
 
@@ -1156,7 +1111,6 @@ def attendance_login():
         "session_number":   session_number,
         "address":          address,
         "shift_target_hours": shift_hours,
-        "at_office":        at_office
     })
 
 
@@ -1284,7 +1238,6 @@ def get_face_logs():
                 "date":             log.get("date"),
                 "match_result":     log.get("match_result"),
                 "match_distance":   log.get("match_distance"),
-                "at_office":        log.get("at_office"),
                 "face_thumb_b64":   log.get("face_thumb_b64"),
                 "shift_type":       log.get("shift_type", "normal"),
                 "shift_name":       log.get("shift_name", "Normal Login"),
@@ -1313,7 +1266,6 @@ def get_face_log_image(log_id):
             "timestamp_ist":  log.get("timestamp_ist"),
             "device_info":    log.get("device_info", {}),
             "match_result":   log.get("match_result"),
-            "at_office":      log.get("at_office"),
             "lat":            log.get("lat") or log.get("device_info", {}).get("lat"),
             "lng":            log.get("lng") or log.get("device_info", {}).get("lng"),
         })
@@ -1374,7 +1326,7 @@ def admin_security_insights():
             return " · ".join(p for p in parts if p)
 
         by_device, by_ip = {}, {}
-        open_sessions, offsite, short_sessions = [], [], []
+        open_sessions, short_sessions = [], []
 
         for r in recs:
             uname = r.get("username") or ""
@@ -1403,8 +1355,6 @@ def admin_security_insights():
 
             if not lot:
                 open_sessions.append(entry)
-            if not r.get("at_office"):
-                offsite.append(entry)
             if lot and hours < 1:
                 short_sessions.append(entry)
 
@@ -1417,7 +1367,6 @@ def admin_security_insights():
             "username":   f.get("username"),
             "time":       f.get("timestamp_ist"),
             "distance":   f.get("match_distance"),
-            "at_office":  f.get("at_office"),
             "shift_name": f.get("shift_name", ""),
         } for f in mongo.db.face_security_logs.find(
             {"date": day, "match_result": False}, {"face_image_b64": 0, "face_thumb_b64": 0}
@@ -1429,14 +1378,12 @@ def admin_security_insights():
             "shared_ips":     shared_ips,
             "face_failures":  face_fails,
             "open_sessions":  open_sessions,
-            "offsite":        offsite,
             "short_sessions": short_sessions,
             "counts": {
                 "shared_devices": len(shared_devices),
                 "shared_ips":     len(shared_ips),
                 "face_failures":  len(face_fails),
                 "open_sessions":  len(open_sessions),
-                "offsite":        len(offsite),
                 "short_sessions": len(short_sessions),
                 "sessions":       len(recs),
             },
@@ -1581,7 +1528,6 @@ def get_dashboard_data():
                 "hours":          round(session_hours, 1),
                 "is_active":      logout_time is None,
                 "login_address":  raw_address or "Address not available",
-                "at_office":      session.get("at_office", False),
             }
             if logout_time is None:
                 active_session = session_info
@@ -1598,7 +1544,7 @@ def get_dashboard_data():
             {"user_id": ObjectId(current_user.id), "date": {"$gte": cutoff}},
             {"login_time": 1, "logout_time": 1, "hours": 1, "date": 1,
              "shift_type": 1, "shift_name": 1, "login_type": 1,
-             "session_number": 1, "login_location": 1, "logout_location": 1, "at_office": 1,
+             "session_number": 1, "login_location": 1, "logout_location": 1,
              "work_comment": 1}
         ).sort("date", -1).limit(200))
 
@@ -1625,7 +1571,6 @@ def get_dashboard_data():
                 "login_lng":      login_loc.get("lng"),
                 "logout_lat":     logout_loc.get("lat"),
                 "logout_lng":     logout_loc.get("lng"),
-                "at_office":      rec.get("at_office", False),
                 "work_comment":   rec.get("work_comment", ""),
             })
 
@@ -1653,13 +1598,8 @@ def get_dashboard_data():
             "can_login_shift1":       not (shift1_hours >= shift_target),
             "can_login_shift2":       not (shift2_hours >= shift_target),
             "total_hours_yeartodate": f"{total_hours:.1f}",
-            "office_lat":             OFFICE_LAT,
-            "office_lng":             OFFICE_LNG,
-            "allowed_radius_km":      ALLOWED_RADIUS_KM,
-            "face_required_radius_km": FACE_REQUIRED_RADIUS_KM,
-            "office_name":             OFFICE_NAME,
-            "office_short":            OFFICE_SHORT,
-            "office_city":             OFFICE_CITY,
+            "org_name":                ORG_NAME,
+            "org_city":                ORG_CITY,
             "shift_login_enabled":     shift_login_enabled,
             "history":                all_formatted,
             "leaves":                 leave_dates,
@@ -1883,11 +1823,10 @@ def admin_user_locations(date_str):
                 "login_lng":     login_loc.get("lng"),
                 "logout_lat":    logout_loc.get("lat"),
                 "logout_lng":    logout_loc.get("lng"),
-                "at_office":     r.get("at_office", False),
                 "device_info":   r.get("device_info", {}),
                 "work_comment":  r.get("work_comment", ""),
             })
-        return jsonify({"locations": locations, "count": len(set(r.get("username") for r in records)), "date": date_str, "office_lat": OFFICE_LAT, "office_lng": OFFICE_LNG})
+        return jsonify({"locations": locations, "count": len(set(r.get("username") for r in records)), "date": date_str})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -1963,22 +1902,10 @@ def get_team_today():
                         {"$set": {"login_address": address, "login_location.address": address}}
                     )
 
-            dist_km = None
-            if lat is not None and lng is not None:
-                dist_km = round(haversine_km(lat, lng, OFFICE_LAT, OFFICE_LNG), 2)
-
-            at_office = r.get("at_office", False)
-            if at_office or (dist_km is not None and dist_km <= ALLOWED_RADIUS_KM):
-                loc_status = OFFICE_SHORT
-                loc_badge  = "on-campus"
-                if not address:
-                    address = OFFICE_NAME + ", " + OFFICE_CITY
-            elif dist_km is not None and dist_km <= 2.0:
-                loc_status = "%s km away" % dist_km
-                loc_badge  = "near-campus"
-            else:
-                loc_status = "Off site"
-                loc_badge  = "remote"
+            # Without a duty station there is nothing to be "near" or "away"
+            # from, so the captured address is the whole status.
+            loc_status = address or "Location recorded"
+            loc_badge  = "located" if address else "unknown"
 
             is_self = (uname == current_user.username)
             lt = r.get("login_time")
@@ -1991,8 +1918,6 @@ def get_team_today():
                 "login_address":   address,
                 "location_status": loc_status,
                 "location_badge":  loc_badge,
-                "dist_km":         dist_km,
-                "at_office":       at_office,
                 # Exact coordinates stay with the person they belong to.
                 "lat": lat if is_self else None,
                 "lng": lng if is_self else None,
@@ -2004,9 +1929,7 @@ def get_team_today():
             "ok":          True,
             "count":       len(team_members),
             "team":        team_members,
-            "office_name": OFFICE_NAME,
-            "office_lat":  OFFICE_LAT,
-            "office_lng":  OFFICE_LNG,
+            "org_name":    ORG_NAME,
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -2099,12 +2022,10 @@ def compute_day_overview(day, usernames=None):
             total_hours = 0.0
             has_active  = False
             login_loc   = {}
-            at_office   = False
             if recs:
                 recs_sorted = sorted(recs, key=lambda r: r.get("login_time") or datetime.min)
                 login_time  = recs_sorted[0].get("login_time")
                 login_loc   = recs_sorted[0].get("login_location", {}) or {}
-                at_office   = bool(recs_sorted[0].get("at_office"))
                 for r in recs:
                     total_hours += r.get("hours", 0) or 0
                     if r.get("logout_time"):
@@ -2148,7 +2069,6 @@ def compute_day_overview(day, usernames=None):
                 "login_address": login_loc.get("address", ""),
                 "login_lat":     login_loc.get("lat"),
                 "login_lng":     login_loc.get("lng"),
-                "at_office":     at_office,
                 "present_days":  present_days,
                 "on_track_days": on_track_days,
                 "avg_hours":     avg_hours,
@@ -2240,7 +2160,6 @@ def compute_user_analysis(user_doc, start, end):
         e["logout_time"]    = format_ist_time(lot) if lot else ""
         e["login_address"]  = (first.get("login_location") or {}).get("address") or first.get("login_address") or ""
         e["logout_address"] = (last.get("logout_location") or {}).get("address") or last.get("logout_address") or ""
-        e["at_office"]      = bool(first.get("at_office"))
 
     leave_recs = list(mongo.db.leave_applications.find({
         "user_id": uid, "status": "approved", "date": {"$gte": start_s, "$lte": end_s},
@@ -2291,7 +2210,7 @@ def compute_user_analysis(user_doc, start, end):
                          "logout_time":    info.get("logout_time", ""),
                          "login_address":  info.get("login_address", ""),
                          "logout_address": info.get("logout_address", ""),
-                         "at_office":      info.get("at_office", False)})
+                         })
         cur += timedelta(days=1)
 
     total_hours = round(sum(e["hours"] for e in days.values()), 2)
@@ -2447,7 +2366,7 @@ EXPORT_COLUMNS = [
     "session_number", "login_time", "logout_time", "hours",
     "login_lat", "login_lng", "login_address",
     "logout_lat", "logout_lng", "logout_address",
-    "at_office", "face_required",
+    "face_required",
     "device_name", "browser", "ip_address", "imei",
 ]
 
@@ -2467,7 +2386,7 @@ def admin_export():
         login_loc  = r.get("login_location", {})
         logout_loc = r.get("logout_location", {})
         di  = r.get("device_info", {})
-        rows.append({"username":r.get("username"),"date":r.get("date"),"login_type":r.get("login_type","normal"),"shift_type":r.get("shift_type","normal"),"shift_name":r.get("shift_name","Normal Login"),"session_number":r.get("session_number",1),"login_time":format_ist_time(lt,"%Y-%m-%d %I:%M:%S %p") if lt else "","logout_time":format_ist_time(lot,"%Y-%m-%d %I:%M:%S %p") if lot else "","hours":r.get("hours",0) or 0,"login_lat":login_loc.get("lat"),"login_lng":login_loc.get("lng"),"login_address":login_loc.get("address",""),"logout_lat":logout_loc.get("lat"),"logout_lng":logout_loc.get("lng"),"logout_address":logout_loc.get("address",""),"at_office":r.get("at_office",False),"face_required":r.get("face_required",False),"device_name":di.get("device_name",""),"browser":di.get("browser",""),"ip_address":di.get("ip_address",""),"imei":di.get("imei","")})
+        rows.append({"username":r.get("username"),"date":r.get("date"),"login_type":r.get("login_type","normal"),"shift_type":r.get("shift_type","normal"),"shift_name":r.get("shift_name","Normal Login"),"session_number":r.get("session_number",1),"login_time":format_ist_time(lt,"%Y-%m-%d %I:%M:%S %p") if lt else "","logout_time":format_ist_time(lot,"%Y-%m-%d %I:%M:%S %p") if lot else "","hours":r.get("hours",0) or 0,"login_lat":login_loc.get("lat"),"login_lng":login_loc.get("lng"),"login_address":login_loc.get("address",""),"logout_lat":logout_loc.get("lat"),"logout_lng":logout_loc.get("lng"),"logout_address":logout_loc.get("address",""),"face_required":r.get("face_required",False),"device_name":di.get("device_name",""),"browser":di.get("browser",""),"ip_address":di.get("ip_address",""),"imei":di.get("imei","")})
     buf = io.StringIO()
     writer = csv.DictWriter(
         buf, fieldnames=EXPORT_COLUMNS, extrasaction="ignore", lineterminator="\n"
@@ -2504,7 +2423,6 @@ ANALYSIS_COLUMNS = [
     ("login_time",     "Login time (IST)"),
     ("logout_time",    "Logout time (IST)"),
     ("hours",          "Hours"),
-    ("at_office",      "At office"),
     ("login_address",  "Login location"),
     ("login_lat",      "Login lat"),
     ("login_lng",      "Login lng"),
@@ -2600,7 +2518,6 @@ def build_analysis_rows(dates, usernames=None):
             "login_time":     format_ist_time(lt, "%Y-%m-%d %I:%M %p") if lt else "",
             "logout_time":    format_ist_time(lot, "%Y-%m-%d %I:%M %p") if lot else "",
             "hours":          round(r.get("hours", 0) or 0, 2),
-            "at_office":      "Yes" if r.get("at_office") else "No",
             "login_address":  li.get("address", ""),
             "login_lat":      li.get("lat"),
             "login_lng":      li.get("lng"),
@@ -3164,8 +3081,6 @@ def shared_analysis_view(token):
         total_records=len(rows),
         people=len({r["username"] for r in rows}),
         created_by=share.get("created_by", ""),
-        office_lat=OFFICE_LAT,
-        office_lng=OFFICE_LNG,
     )
 
 

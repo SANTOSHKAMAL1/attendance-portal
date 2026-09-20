@@ -73,7 +73,7 @@ async function loadHistory(){
         <div class="day"><div class="d">${dd}</div><div class="m">${mm}</div></div>
         <div class="bd">
           <div class="kind">${h.shift_name || 'Normal duty'}
-            <span class="oa-tag ${h.at_office ? 'ok' : ''}" style="margin-left:6px">${h.at_office ? 'Head Office' : 'Off site'}</span>
+            <span class="oa-tag" style="margin-left:6px">${h.login_address || 'Location recorded'}</span>
           </div>
           <div class="times">${h.login_time} \u2192 ${open ? 'still on duty' : h.logout_time}</div>
         </div>

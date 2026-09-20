@@ -1,8 +1,9 @@
 // ═══════════════════════════════
-//  DUTY STATION NAMING (single source of truth)
+//  ORGANISATION NAMING (single source of truth)
+//  There is no duty station: attendance is recorded wherever the
+//  person signs in from.
 // ═══════════════════════════════
-const OFFICE_NAME  = 'OJIX · Head Office';
-const OFFICE_SHORT = 'Head Office';
+const ORG_NAME = 'OJIX';
 
 // ═══════════════════════════════
 //  THE DAY ARC — hours drawn as a 180° sweep
@@ -45,7 +46,6 @@ let regPhotoIndex = 0;
 // Location
 let locState = {
   checked:  false,
-  atOffice: false,
   lat:      null,
   lng:      null,
   address:  '',
@@ -227,23 +227,25 @@ function openFaceRegIfAllowed(){
 // ═══════════════════════════════════════════════
 //  LOCATION
 // ═══════════════════════════════════════════════
-function updateLocBanners(state, addr, dist){
+// state: 'located' once we have coordinates, anything else = still checking.
+// There is no office to be "at" or "away from" any more, so the banner
+// simply reports the place the sign-in will be recorded against.
+function updateLocBanners(state, addr){
   const configs = [
     { banner:'locBanner', icon:'locIcon', title:'locTitle', sub:'locSub', chip:'locChip' },
     { banner:'locBannerS', icon:'locIconS', title:'locTitleS', sub:'locSubS', chip:'locChipS' },
   ];
   for(const ids of configs){
     const b = document.getElementById(ids.banner); if(!b) continue;
-    b.className = `oa-strip ${state==='at'?'is-ok':state==='out'?'is-warn':'is-busy'}`;
+    b.className = `oa-strip ${state==='located'?'is-ok':'is-busy'}`;
     const ic = document.getElementById(ids.icon);
-    if(ic) ic.textContent = state==='at'?'🏛️':state==='out'?'📡':'📡';
+    if(ic) ic.textContent = '📍';
     const tt = document.getElementById(ids.title);
-    const distStr = dist!=null?(dist<1?(dist*1000).toFixed(0)+'m':dist.toFixed(2)+'km'):'';
-    if(tt) tt.textContent = state==='at'?OFFICE_NAME:state==='out'?`${distStr} from ${OFFICE_SHORT}`:'Checking your location…';
+    if(tt) tt.textContent = state==='located' ? (addr || 'Location recorded') : 'Checking your location…';
     const ss = document.getElementById(ids.sub);
-    if(ss) ss.textContent = addr?addr:'Tap to refresh your location';
+    if(ss) ss.textContent = state==='located' ? 'Attendance will be recorded here' : 'Tap to refresh your location';
     const cc = document.getElementById(ids.chip);
-    if(cc){ cc.textContent = state==='at'?'At HQ':state==='out'?'Away':'Checking'; cc.className='chip'; }
+    if(cc){ cc.textContent = state==='located'?'Located':'Checking'; cc.className='chip'; }
   }
 
   const railText = document.getElementById('railLocText');
@@ -254,7 +256,7 @@ function updateLocBanners(state, addr, dist){
 
   // Update Map widget if coordinates exist
   if(locState.lat && locState.lng){
-    renderUserMap(locState.lat, locState.lng, locState.officeLat, locState.officeLng);
+    renderUserMap(locState.lat, locState.lng);
     const coordsText = document.getElementById('userCoordsText');
     if(coordsText){
       const addrStr = (locState.address && !locState.address.startsWith("Location:") && !locState.address.startsWith("Lat:")) ? locState.address : '';
@@ -270,7 +272,7 @@ function updateLocBanners(state, addr, dist){
 let userLeafletMap = null;
 let userLeafletMarker = null;
 
-function renderUserMap(lat, lng, officeLat, officeLng){
+function renderUserMap(lat, lng){
   const mapCard = document.getElementById('userMapCard');
   if(mapCard) mapCard.style.display = 'block';
   
@@ -291,15 +293,6 @@ function renderUserMap(lat, lng, officeLat, officeLng){
         attribution: '&copy; OpenStreetMap'
       }).addTo(userLeafletMap);
 
-      // Office HQ reference circle (500m radius)
-      const targetOffLat = officeLat || 12.9248224;
-      const targetOffLng = officeLng || 77.5702351;
-      L.circle([targetOffLat, targetOffLng], {
-        color: '#C9662F',
-        fillColor: '#C9662F',
-        fillOpacity: 0.1,
-        radius: 500
-      }).addTo(userLeafletMap).bindPopup('<strong>OJIX Head Office</strong><br>500m Campus Zone');
     } else {
       userLeafletMap.setView([lat, lng], 16);
     }
@@ -333,11 +326,10 @@ function renderUserMap(lat, lng, officeLat, officeLng){
           body: JSON.stringify({ lat: newPos.lat, lng: newPos.lng })
         });
         const d = await r.json();
-        locState.atOffice = d.at_office;
-        locState.distance = d.distance_km;
+            locState.distance = d.distance_km;
         locState.checked = true;
 
-        updateLocBanners(d.at_office ? 'at' : 'out', locState.address, d.distance_km);
+        updateLocBanners('located', locState.address);
         toast('Pin position updated!', 'ok');
       });
     }
@@ -384,11 +376,10 @@ async function searchAddressOnMap(){
           body: JSON.stringify({ lat: newLat, lng: newLng })
         });
         const d = await r.json();
-        locState.atOffice = d.at_office;
-        locState.distance = d.distance_km;
+            locState.distance = d.distance_km;
         locState.checked = true;
 
-        updateLocBanners(d.at_office ? 'at' : 'out', locState.address, d.distance_km);
+        updateLocBanners('located', locState.address);
         toast('Location found & map updated!', 'ok');
       } else {
         toast('Location not found. Try dragging the blue pin on the map.', 'warn');
@@ -407,11 +398,8 @@ async function refreshLocation(){
     locState.lat = geo.lat; locState.lng = geo.lng;
     const r = await fetch('/api/location/check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lat:geo.lat,lng:geo.lng})});
     const d = await r.json();
-    locState.atOffice = d.at_office;
     locState.address  = d.address;
     locState.distance = d.distance_km;
-    locState.officeLat = d.office_lat;
-    locState.officeLng = d.office_lng;
     locState.checked  = true;
 
     // Client-side fallback if server address is raw coordinates
@@ -429,7 +417,7 @@ async function refreshLocation(){
       }
     }
 
-    updateLocBanners(d.at_office?'at':'out', locState.address, d.distance_km);
+    updateLocBanners('located', locState.address);
   }catch(e){
     updateLocBanners('checking','Could not get GPS — check permissions',null);
     console.error('Location error:',e);
@@ -618,7 +606,7 @@ async function captureAndProcess(){
     btn.innerHTML='<i class="fas fa-spinner spin"></i> Verifying…';
     document.getElementById('camTxt').textContent='Checking identity…';
     try{
-      const r=await fetch('/api/face/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:img,device_info:devInfo(),at_office:locState.atOffice})});
+      const r=await fetch('/api/face/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:img,device_info:devInfo()})});
       const d=await r.json();
       if(d.ok){
         document.getElementById('faceReadyBanner').classList.add('show');
@@ -675,10 +663,10 @@ function doNLogin(){
     btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner spin"></i>';
     try{
       const geo=await getGeo();
-      const r=await fetch('/attendance/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lat:geo.lat,lng:geo.lng,login_type:'normal',snapshot_id:snapId,device_info:di||devInfo(),at_office:locState.atOffice})});
+      const r=await fetch('/attendance/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lat:geo.lat,lng:geo.lng,login_type:'normal',snapshot_id:snapId,device_info:di||devInfo()})});
       const d=await r.json();
       if(d.ok){
-        toast(`✅ Logged in! ${d.at_office?'🏢 Office':'📡 Remote'}`,'ok');
+        toast('✅ Logged in!','ok');
         document.getElementById('nLoginTime').textContent=d.login_time;
         document.getElementById('nLoginAddr').textContent=d.address||'—';
         loadDD();
@@ -702,10 +690,10 @@ function doShiftLogin(type){
     btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner spin"></i>';
     try{
       const geo=await getGeo();
-      const r=await fetch('/attendance/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lat:geo.lat,lng:geo.lng,login_type:'shift',shift_type:type,shift_name:name,snapshot_id:snapId,device_info:di||devInfo(),at_office:locState.atOffice})});
+      const r=await fetch('/attendance/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lat:geo.lat,lng:geo.lng,login_type:'shift',shift_type:type,shift_name:name,snapshot_id:snapId,device_info:di||devInfo()})});
       const d=await r.json();
       if(d.ok){
-        toast(`✅ ${name} started! ${d.at_office?'🏢':'📡'}`,'ok');
+        toast(`✅ ${name} started!`,'ok');
         document.getElementById(type==='shift1'?'s1lt':'s2lt').textContent=d.login_time;
         document.getElementById(type==='shift1'?'s1la':'s2la').textContent=d.address||'—';
         loadDD();
@@ -891,7 +879,7 @@ function renderHist(list,id){
       <div class="day"><div class="d">${dd}</div><div class="m">${mm}</div></div>
       <div class="bd">
         <div class="kind">${h.shift_name||'Normal duty'}
-          <span class="oa-tag ${h.at_office?'ok':''}" style="margin-left:6px">${h.at_office?'Head Office':'Off site'}</span>
+          <span class="oa-tag" style="margin-left:6px">${h.login_address || 'Location recorded'}</span>
         </div>
         <div class="times">${h.login_time} \u2192 ${open?'still on duty':h.logout_time}</div>
         ${locStr ? `<div style="font-size:0.75rem;color:var(--t2);margin-top:3px;"><i class="fas fa-location-dot" style="color:var(--accent-500)"></i> <strong>Logged in Location:</strong> ${locStr}</div>` : ''}
@@ -1034,7 +1022,7 @@ function calTap(ds){
       return `<div class="oa-entry" style="align-items:flex-start">
         <div class="bd" style="width:100%">
           <div class="kind">${esc(h.shift_name||'Normal duty')}
-            <span class="oa-tag ${h.at_office?'ok':''}" style="margin-left:6px">${h.at_office?'Head Office':'Off site'}</span>
+            <span class="oa-tag" style="margin-left:6px">${h.login_address || 'Location recorded'}</span>
           </div>
           <div class="times">${esc(h.login_time)} → ${open?'still on duty':esc(h.logout_time)}${h.hours&&h.hours!=='N/A'?` · ${esc(h.hours)}h`:''}</div>
           <div style="font-size:.75rem;color:var(--t2);margin-top:5px">

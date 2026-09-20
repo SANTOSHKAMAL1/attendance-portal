@@ -75,7 +75,6 @@
             { n: c.face_failures  || 0, l: 'Face failures',  bad: (c.face_failures  || 0) > 0 },
             { n: c.open_sessions  || 0, l: 'Never signed out', bad: (c.open_sessions || 0) > 0 },
             { n: c.short_sessions || 0, l: 'Under 1 hour',   bad: false },
-            { n: c.offsite        || 0, l: 'Off campus',     bad: false },
             { n: c.sessions       || 0, l: 'Sessions',       bad: false },
         ].map(t => `<div class="sec-tile ${t.bad ? 'bad' : ''}">
                       <div class="n">${t.n}</div><div class="l">${t.l}</div>
@@ -99,7 +98,7 @@
                           <span class="oa-tag">${escapeHtml(f.shift_name || '')}</span>
                           <span class="spacer"></span>
                           <span class="sec-mono">${escapeHtml(f.time || '')}</span></div>
-                        <div class="sec-item-sub">${f.at_office ? 'On campus' : 'Off campus'}${
+                        <div class="sec-item-sub">${
                           f.distance != null ? ' · distance ' + f.distance : ''}</div>
                       </div>`),
 
@@ -111,7 +110,6 @@
                 data.short_sessions, secPerson),
 
             secGroup('Signed in from off campus', 'fa-tower-broadcast', 'info', '',
-                data.offsite, secPerson),
 
             secGroup('Same network, different people', 'fa-wifi', 'info',
                 'Normal on a shared office or hostel Wi-Fi — listed for completeness only.',
@@ -556,32 +554,24 @@
             } else {
                 mapContainer.style.display = 'block';
 
-                // Initialize or refresh main Leaflet Map
-                const officeLat = data.office_lat || 12.9248224;
-                const officeLng = data.office_lng || 77.5702351;
+                // Centre on the sign-ins themselves; there is no fixed site.
+                const first = (data.locations || []).find(l => l.login_lat && l.login_lng);
+                const ctrLat = first ? first.login_lat : 20.5937;
+                const ctrLng = first ? first.login_lng : 78.9629;
 
                 if (!adminMap) {
-                    adminMap = L.map('adminLocationsMap').setView([officeLat, officeLng], 14);
+                    adminMap = L.map('adminLocationsMap').setView([ctrLat, ctrLng], first ? 12 : 4);
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                         maxZoom: 19,
                         attribution: '© OpenStreetMap | OJIX Attendance'
                     }).addTo(adminMap);
                 } else {
-                    adminMap.setView([officeLat, officeLng], 14);
+                    adminMap.setView([ctrLat, ctrLng], first ? 12 : 4);
                     mapMarkers.forEach(m => adminMap.removeLayer(m));
                     mapMarkers = [];
                 }
 
-                // Add OJIX Head Office Campus boundary circle (500m radius)
-                const campusCircle = L.circle([officeLat, officeLng], {
-                    color: '#C9662F',
-                    fillColor: '#C9662F',
-                    fillOpacity: 0.1,
-                    radius: 500
-                }).addTo(adminMap).bindPopup('<strong>OJIX University Campus</strong><br>500m allowed radius zone');
-                mapMarkers.push(campusCircle);
-
-                const bounds = L.latLngBounds([[officeLat, officeLng]]);
+                const bounds = L.latLngBounds([[ctrLat, ctrLng]]);
 
                 data.locations.forEach(l => {
                     const di = l.device_info || {};
@@ -610,7 +600,7 @@
                         <div style="display:flex;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;align-items:center;">
                             <div style="display:flex;align-items:center;gap:10px;">
                                 <strong style="font-size:1.05rem;">${l.username}</strong>
-                                <span class="badge" style="background:${l.at_office?'#34C759':'#CF6930'};color:white;">${l.at_office?'🏛️ On Campus':'📡 Remote'}</span>
+                                <span class="badge" style="background:var(--ink-600);color:white;">📍 ${l.login_address || 'Location recorded'}</span>
                             </div>
                             <div style="display:flex;gap:8px;align-items:center;">
                                 <span class="badge" style="background:${l.shift_type==='shift1'?'#C9662F':l.shift_type==='shift2'?'#CF6930':'#86888B'};color:white;">${l.shift_name}</span>
@@ -1001,7 +991,7 @@
                 <div class="ac-day-item">
                     <div class="ac-day-item-head">
                         <strong>${escapeHtml(l.username)}</strong>
-                        <span class="oa-tag ${l.at_office ? 'ok' : 'warn'}">${l.at_office ? 'On campus' : 'Remote'}</span>
+                        <span class="oa-tag">${l.login_address || 'Location recorded'}</span>
                         <span class="oa-tag">${escapeHtml(l.shift_name)}</span>
                         <span class="spacer"></span>
                         <span class="ac-day-item-hrs">${l.hours}h</span>
