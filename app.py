@@ -7,7 +7,7 @@ from bson.objectid import ObjectId
 from datetime import datetime, timedelta, date
 import pytz
 import io
-import pandas as pd
+import csv
 import math
 import os
 import re
@@ -2396,6 +2396,19 @@ def admin_dashboard():
     return render_template("admin_dashboard.html", users=users, recent=recent, leaves=leaves_data, shifts=SHIFT_TIMINGS, today_date=date.today().isoformat(), google_maps_api_key=GOOGLE_MAPS_API_KEY)
 
 
+# Column order for the attendance CSV export. Previously this came free from
+# pandas (dict-key order); spelling it out keeps the header identical and
+# means an empty date range still exports a header row instead of a bare file.
+EXPORT_COLUMNS = [
+    "username", "date", "login_type", "shift_type", "shift_name",
+    "session_number", "login_time", "logout_time", "hours",
+    "login_lat", "login_lng", "login_address",
+    "logout_lat", "logout_lng", "logout_address",
+    "at_office", "face_required",
+    "device_name", "browser", "ip_address", "imei",
+]
+
+
 @app.route("/admin/export", methods=["GET"])
 @login_required
 def admin_export():
@@ -2412,9 +2425,12 @@ def admin_export():
         logout_loc = r.get("logout_location", {})
         di  = r.get("device_info", {})
         rows.append({"username":r.get("username"),"date":r.get("date"),"login_type":r.get("login_type","normal"),"shift_type":r.get("shift_type","normal"),"shift_name":r.get("shift_name","Normal Login"),"session_number":r.get("session_number",1),"login_time":format_ist_time(lt,"%Y-%m-%d %I:%M:%S %p") if lt else "","logout_time":format_ist_time(lot,"%Y-%m-%d %I:%M:%S %p") if lot else "","hours":r.get("hours",0) or 0,"login_lat":login_loc.get("lat"),"login_lng":login_loc.get("lng"),"login_address":login_loc.get("address",""),"logout_lat":logout_loc.get("lat"),"logout_lng":logout_loc.get("lng"),"logout_address":logout_loc.get("address",""),"at_office":r.get("at_office",False),"face_required":r.get("face_required",False),"device_name":di.get("device_name",""),"browser":di.get("browser",""),"ip_address":di.get("ip_address",""),"imei":di.get("imei","")})
-    df  = pd.DataFrame(rows)
     buf = io.StringIO()
-    df.to_csv(buf, index=False)
+    writer = csv.DictWriter(
+        buf, fieldnames=EXPORT_COLUMNS, extrasaction="ignore", lineterminator="\n"
+    )
+    writer.writeheader()
+    writer.writerows(rows)
     mem = io.BytesIO()
     mem.write(buf.getvalue().encode("utf-8"))
     mem.seek(0)

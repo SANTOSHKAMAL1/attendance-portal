@@ -13,12 +13,19 @@ Flask-Mail==0.9.1
 python-dotenv==1.0.0
 pytz==2025.2
 
-pandas==2.2.3
-numpy>=2.0.0
 openpyxl==3.1.5
-# lets openpyxl embed the JAIN mark in the reports (reports still build without it)
-Pillow>=10.0.0
 
-# imported by app.py but missing from the original file
+# Face check-in. These two dominate the bundle (~210 MB of Vercel's 250 MB
+# unzipped function limit), so nothing else heavy can be added here without
+# first measuring. numpy is required by cv2, not imported for its own sake.
 opencv-python-headless==4.10.0.84
+numpy>=2.0.0
+
 requests==2.32.3
+
+# Removed to fit the Vercel function size limit:
+#   pandas  — was used for exactly one DataFrame -> to_csv in /admin/export,
+#             now written with the stdlib csv module (saves ~79 MB).
+#   Pillow  — only let openpyxl embed the JAIN mark in Excel reports.
+#             _stamp_logo() already skips the badge when it is absent, so
+#             reports still build, just without the logo (saves ~21 MB).
