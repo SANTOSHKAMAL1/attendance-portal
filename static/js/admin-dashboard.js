@@ -1,0 +1,1277 @@
+    let faceCurrentPage = 1;
+
+    function logout() { window.location.href = '/logout'; }
+
+    function showAlert(msg, type) {
+        const c = document.getElementById('alertContainer');
+        const el = document.createElement('div');
+        const kind = type === 'success' ? 'ok' : type === 'danger' ? 'err' : 'warn';
+        el.className = 'oa-toast show ' + kind;
+        el.innerHTML = '<i class="fas fa-' +
+            (type==='success'?'check-circle':type==='danger'?'circle-exclamation':'triangle-exclamation') +
+            '"></i><span>' + msg + '</span>';
+        document.body.appendChild(el);
+        setTimeout(() => { el.classList.remove('show'); setTimeout(()=>el.remove(), 300); }, 4200);
+    }
+
+    function switchTab(tab, event) {
+        document.querySelectorAll('.ad-tab').forEach(t => t.classList.remove('on'));
+        document.querySelectorAll('.ad-panel').forEach(c => c.classList.remove('on'));
+        if (event && event.target.closest('.ad-tab')) event.target.closest('.ad-tab').classList.add('on');
+        const panel = document.getElementById(tab + '-tab');
+        if (panel) panel.classList.add('on');
+        if (tab === 'early') loadEarlyLogouts();
+        if (tab === 'locations') loadLocations();
+        if (tab === 'face') loadFaceLogs(1);
+        if (tab === 'analysis') { loadAnalysisOverview(); loadShares(); }
+        if (tab === 'calendar') loadCalendarOverview();
+        if (tab === 'face') loadSecurityInsights();
+    }
+
+    // ── Security & integrity: signals worth a second look, for one day ────
+    async function loadSecurityInsights() {
+        const dateEl = document.getElementById('secDate');
+        const day = dateEl ? dateEl.value : '';
+        const body = document.getElementById('secBody');
+        if (!body) return;
+        body.innerHTML = '<div class="oa-empty"><i class="fas fa-circle-notch spin"></i><p>Checking…</p></div>';
+        try {
+            const res = await fetch('/api/admin/security-insights?date=' + encodeURIComponent(day));
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed to load');
+            renderSecurityInsights(data);
+        } catch (err) {
+            body.innerHTML = '<div class="oa-empty"><i class="fas fa-triangle-exclamation"></i><p>' + err.message + '</p></div>';
+        }
+    }
+
+    function secGroup(title, icon, tone, hint, items, render) {
+        if (!items || !items.length) return '';
+        return `<div class="sec-group ${tone}">
+            <div class="sec-group-head"><i class="fas ${icon}"></i> ${title}
+              <span class="sec-count">${items.length}</span></div>
+            ${hint ? `<div class="sec-hint">${hint}</div>` : ''}
+            <div class="sec-items">${items.map(render).join('')}</div>
+        </div>`;
+    }
+
+    function secPerson(p) {
+        const where = p.address ? ` · ${escapeHtml(p.address)}` : '';
+        const dev   = [p.device, p.browser].filter(Boolean).map(escapeHtml).join(' · ');
+        return `<div class="sec-item">
+            <div class="sec-item-top"><strong>${escapeHtml(p.username || '—')}</strong>
+              <span class="oa-tag">${escapeHtml(p.shift_name || 'Normal')}</span>
+              <span class="spacer"></span>
+              <span class="sec-mono">${p.login_time || '—'}${p.logout_time ? ' → ' + p.logout_time : ''}${p.hours ? ' · ' + p.hours + 'h' : ''}</span>
+            </div>
+            <div class="sec-item-sub">${dev || 'Device not recorded'}${p.ip ? ' · ' + escapeHtml(p.ip) : ''}${where}</div>
+        </div>`;
+    }
+
+    function renderSecurityInsights(data) {
+        const c = data.counts || {};
+        document.getElementById('secTiles').innerHTML = [
+            { n: c.shared_devices || 0, l: 'Shared devices', bad: (c.shared_devices || 0) > 0 },
+            { n: c.face_failures  || 0, l: 'Face failures',  bad: (c.face_failures  || 0) > 0 },
+            { n: c.open_sessions  || 0, l: 'Never signed out', bad: (c.open_sessions || 0) > 0 },
+            { n: c.short_sessions || 0, l: 'Under 1 hour',   bad: false },
+            { n: c.offsite        || 0, l: 'Off campus',     bad: false },
+            { n: c.sessions       || 0, l: 'Sessions',       bad: false },
+        ].map(t => `<div class="sec-tile ${t.bad ? 'bad' : ''}">
+                      <div class="n">${t.n}</div><div class="l">${t.l}</div>
+                    </div>`).join('');
+
+        const groups = [
+            secGroup('Same device, different people', 'fa-mobile-screen', 'bad',
+                'One phone or browser signed in more than one person on this day. Worth confirming.',
+                data.shared_devices,
+                g => `<div class="sec-item">
+                        <div class="sec-item-top"><strong>${g.users.map(escapeHtml).join(' + ')}</strong>
+                          <span class="spacer"></span><span class="oa-tag warn">${g.users.length} people</span></div>
+                        <div class="sec-item-sub">${escapeHtml(g.key)}</div>
+                      </div>`),
+
+            secGroup('Face check failed', 'fa-user-xmark', 'bad',
+                'The photo taken at sign-in did not match the registered face.',
+                data.face_failures,
+                f => `<div class="sec-item">
+                        <div class="sec-item-top"><strong>${escapeHtml(f.username || '—')}</strong>
+                          <span class="oa-tag">${escapeHtml(f.shift_name || '')}</span>
+                          <span class="spacer"></span>
+                          <span class="sec-mono">${escapeHtml(f.time || '')}</span></div>
+                        <div class="sec-item-sub">${f.at_office ? 'On campus' : 'Off campus'}${
+                          f.distance != null ? ' · distance ' + f.distance : ''}</div>
+                      </div>`),
+
+            secGroup('Signed in, never signed out', 'fa-hourglass-half', 'warn',
+                'Still open — either they forgot, or they are on duty right now.',
+                data.open_sessions, secPerson),
+
+            secGroup('Under an hour', 'fa-stopwatch', 'warn', '',
+                data.short_sessions, secPerson),
+
+            secGroup('Signed in from off campus', 'fa-tower-broadcast', 'info', '',
+                data.offsite, secPerson),
+
+            secGroup('Same network, different people', 'fa-wifi', 'info',
+                'Normal on a shared office or hostel Wi-Fi — listed for completeness only.',
+                data.shared_ips,
+                g => `<div class="sec-item">
+                        <div class="sec-item-top"><strong>${g.users.map(escapeHtml).join(' + ')}</strong>
+                          <span class="spacer"></span><span class="oa-tag">${g.users.length} people</span></div>
+                        <div class="sec-item-sub">${escapeHtml(g.key)}</div>
+                      </div>`),
+        ].filter(Boolean).join('');
+
+        document.getElementById('secBody').innerHTML = groups ||
+            `<div class="oa-empty"><i class="fas fa-shield-heart" style="color:var(--ok)"></i>
+               <p>Nothing to flag for ${data.date}. Every sign-in looks ordinary.</p></div>`;
+    }
+
+    // ── Dashboard Stats ──────────────────────────────────────────────────
+    async function loadDashboardStats() {
+        try {
+            const today = new Date().toISOString().split('T')[0];
+            const [locRes, leavesRes, earlyRes, faceRes] = await Promise.all([
+                fetch(`/api/admin/user-locations/${today}`),
+                fetch('/api/admin/leave-applications?status=pending'),
+                fetch('/api/admin/early-logouts'),
+                fetch('/api/admin/face-logs?per_page=1')
+            ]);
+            const [locData, leavesData, earlyData, faceData] = await Promise.all([locRes.json(), leavesRes.json(), earlyRes.json(), faceRes.json()]);
+            document.getElementById('todayAttendance').textContent = locData.count || 0;
+            document.getElementById('pendingLeaves').textContent = leavesData.applications?.length || 0;
+            document.getElementById('earlyLogouts').textContent = earlyData.count || 0;
+            document.getElementById('faceLogs24h').textContent = faceData.total || 0;
+
+            const failRes = await fetch(`/api/admin/face-logs?match=false&date=${today}&per_page=1`);
+            const failData = await failRes.json();
+            document.getElementById('faceFailures').textContent = failData.total || 0;
+
+            const allLoc = await fetch(`/api/admin/user-locations/${today}`);
+            const allLocData = await allLoc.json();
+            let html = '';
+            (allLocData.locations || []).slice(0, 15).forEach(l => {
+                html += `<tr>
+                    <td><strong>${l.username}</strong></td>
+                    <td>${l.date}</td>
+                    <td>${l.shift_name}</td>
+                    <td>${l.login_time}</td>
+                    <td>${l.logout_time || '<span style="color:#34c759;">Active</span>'}</td>
+                    <td>${l.hours} hrs</td>
+                    <td style="font-size:0.8rem;color:#86868b;">${l.device_info?.device_name || '-'}</td>
+                </tr>`;
+            });
+            document.getElementById('recentActivity').innerHTML = html || '<tr><td colspan="7" style="text-align:center;">No activity today</td></tr>';
+        } catch (err) { console.error('Stats error:', err); }
+    }
+
+
+    // ═════════════════════════════════════
+    //  BULK SHIFT CONTROL — turn shift attendance on/off for everyone
+    // ═════════════════════════════════════
+    async function setShiftForEveryone(enabled) {
+        const word = enabled ? 'switch on' : 'switch off';
+        if (!confirm('This will ' + word + ' shift attendance for every non-admin user. Continue?')) return;
+
+        const btns = document.querySelectorAll('[data-bulk-shift]');
+        btns.forEach(b => b.disabled = true);
+        try {
+            const res = await fetch('/api/admin/shift-login/bulk', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ enabled: enabled })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                showAlert('Shift attendance ' + (enabled ? 'switched on' : 'switched off') +
+                          ' for ' + data.modified + ' user' + (data.modified === 1 ? '' : 's'), 'success');
+                document.querySelectorAll('input[data-shift-toggle]').forEach(t => { t.checked = enabled; });
+                document.querySelectorAll('[id^="chip-shift-"]').forEach(chip => {
+                    chip.className = 'oa-tag ' + (enabled ? 'ok' : '');
+                    chip.innerHTML = '<i class="fas fa-' + (enabled ? 'layer-group' : 'ban') + '"></i> ' +
+                                     (enabled ? 'Shifts on' : 'Shifts off');
+                });
+            } else {
+                showAlert(data.error || 'Could not update', 'danger');
+            }
+        } catch (e) {
+            showAlert('Network error: ' + e.message, 'danger');
+        } finally {
+            btns.forEach(b => b.disabled = false);
+        }
+    }
+
+    // ── Face ID Toggle Controls ──────────────────────────────────────────
+    async function toggleFaceSetting(userId, setting, value, username) {
+        try {
+            const body = {};
+            body[setting] = value;
+            const res = await fetch(`/api/admin/user/${userId}/face-settings`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            const data = await res.json();
+            if (data.ok) {
+                // Pick the correct human-readable label
+                let label;
+                if (setting === 'face_required') label = 'Face ID Requirement';
+                else if (setting === 'face_registration_enabled') label = 'Face Registration';
+                else if (setting === 'shift_login_enabled') label = 'Shift Login';
+                else label = setting;
+
+                const state = value ? 'enabled' : 'disabled';
+                showAlert(`${label} ${state} for ${username}`, 'success');
+
+                // Update status chips (only for face-related settings)
+                if (setting === 'face_required') {
+                    const chip = document.getElementById(`chip-req-${userId}`);
+                    if (chip) {
+                        chip.className = 'oa-tag ' + (value ? 'ok' : '');
+                        chip.innerHTML = '<i class="fas fa-' + (value ? 'lock' : 'lock-open') + '"></i> ' + (value ? 'Face ID on' : 'Face ID off');
+                    }
+                } else if (setting === 'face_registration_enabled') {
+                    const chip = document.getElementById(`chip-reg-${userId}`);
+                    if (chip) {
+                        chip.className = 'oa-tag ' + (value ? 'ok' : '');
+                        chip.innerHTML = '<i class="fas fa-' + (value ? 'check' : 'xmark') + '"></i> ' + (value ? 'Can register' : 'Cannot register');
+                    }
+                }
+                } else if (setting === 'shift_login_enabled') {
+                    const chip = document.getElementById(`chip-shift-${userId}`);
+                    if (chip) {
+                        chip.className = 'oa-tag ' + (value ? 'ok' : '');
+                        chip.innerHTML = '<i class="fas fa-' + (value ? 'layer-group' : 'ban') + '"></i> ' + (value ? 'Shifts on' : 'Shifts off');
+                    }
+            } else {
+                showAlert(data.error || 'Update failed', 'danger');
+                // Revert toggle on failure — find the correct toggle by data-uid
+                const allToggles = document.querySelectorAll(`input[data-uid="${userId}"]`);
+                allToggles.forEach(t => {
+                    const onchangeAttr = t.getAttribute('onchange') || '';
+                    if (onchangeAttr.includes(`'${setting}'`)) t.checked = !value;
+                });
+            }
+        } catch (e) {
+            showAlert('Network error: ' + e.message, 'danger');
+        }
+    }
+
+    async function clearFaceData(userId, username) {
+        if (!confirm(`Reset face data for "${username}"?\n\nThis will delete all stored face photos and require them to re-register (if admin re-enables registration).`)) return;
+        try {
+            const res = await fetch(`/api/admin/user/${userId}/face-settings`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ clear_face_data: true })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                showAlert(`Face data cleared for ${username}`, 'success');
+                setTimeout(() => location.reload(), 1200);
+            } else showAlert(data.error, 'danger');
+        } catch { showAlert('Error clearing face data', 'danger'); }
+    }
+
+    // ── Face Security Logs ────────────────────────────────────────────────
+    async function loadFaceLogs(page = 1) {
+        faceCurrentPage = page;
+        const user = document.getElementById('filterUser').value.trim();
+        const match = document.getElementById('filterMatch').value;
+        const date = document.getElementById('filterDate').value;
+        const shift = document.getElementById('filterShift').value;
+
+        let url = `/api/admin/face-logs?page=${page}&per_page=12`;
+        if (user) url += `&username=${encodeURIComponent(user)}`;
+        if (match !== '') url += `&match=${match}`;
+        if (date) url += `&date=${date}`;
+        if (shift) url += `&shift=${shift}`;
+
+        document.getElementById('faceLogsGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:#86868b;"><i class="fas fa-spinner fa-spin" style="font-size:2rem;"></i><br>Loading...</div>';
+
+        try {
+            const res = await fetch(url);
+            const data = await res.json();
+            document.getElementById('faceTotalBadge').textContent = `${data.total} Total Logs`;
+
+            if (!data.logs || data.logs.length === 0) {
+                document.getElementById('faceLogsGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:#86868b;"><i class="fas fa-camera-slash" style="font-size:3rem;margin-bottom:16px;display:block;"></i>No face logs found</div>';
+                document.getElementById('facePagination').innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            data.logs.forEach(log => {
+                const matched = log.match_result;
+                const di = log.device_info || {};
+                const thumbSrc = log.face_thumb_b64 ? `data:image/jpeg;base64,${log.face_thumb_b64}` : null;
+                html += `<div class="face-log-card ${matched ? 'matched' : 'failed'}">
+                    <div class="face-photo-container">
+                        ${thumbSrc ? `<img src="${thumbSrc}" alt="Face capture" loading="lazy">` : '<div class="face-photo-placeholder"><i class="fas fa-user-circle"></i></div>'}
+                        <div class="face-match-badge ${matched ? 'matched' : 'failed'}">${matched ? '✅ Matched' : '❌ Failed'}</div>
+                    </div>
+                    <div class="face-log-body">
+                        <div class="face-log-username">${log.username}</div>
+                        <div class="face-log-time">${log.timestamp_ist || 'N/A'}</div>
+                        <div class="face-log-time" style="color: #0071e3; font-weight: bold; margin-top: 2px;">${log.shift_name || 'Normal Login'}</div>
+                        <div class="device-info-grid">
+                            <span class="di-label">Device</span><span class="di-value">${di.device_name || 'Unknown'}</span>
+                            <span class="di-label">Browser</span><span class="di-value">${di.browser || 'Unknown'}</span>
+                            <span class="di-label">IP</span><span class="di-value">${log.ip_address || 'N/A'}</span>
+                            <span class="di-label">IMEI</span><span class="di-value" style="color:${di.imei && di.imei !== 'Not available (browser)' ? '#0071e3' : '#86868b'};">${di.imei || 'N/A'}</span>
+                            <span class="di-label">Screen</span><span class="di-value">${di.screen || 'N/A'}</span>
+                            <span class="di-label">Distance</span><span class="di-value">${log.match_distance ?? 'N/A'}</span>
+                        </div>
+                        <div class="face-log-actions">
+                            <button class="view-full-btn" onclick="viewFaceLogDetail('${log.id}')"><i class="fas fa-expand"></i> View Full</button>
+                            <button class="delete-log-btn" onclick="deleteFaceLog('${log.id}', this)"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+
+            document.getElementById('faceLogsGrid').innerHTML = html;
+
+            const totalPages = Math.ceil(data.total / 12);
+            let pag = '';
+            if (totalPages > 1) {
+                pag += `<button class="btn" onclick="loadFaceLogs(${Math.max(1, page-1)})" ${page===1?'disabled':''}>◀</button>`;
+                for (let p = Math.max(1, page-2); p <= Math.min(totalPages, page+2); p++) {
+                    pag += `<button class="btn ${p===page?'btn-primary':''}" onclick="loadFaceLogs(${p})">${p}</button>`;
+                }
+                pag += `<button class="btn" onclick="loadFaceLogs(${Math.min(totalPages, page+1)})" ${page===totalPages?'disabled':''}>▶</button>`;
+                pag += `<span class="pagination-info">Page ${page} of ${totalPages} (${data.total} logs)</span>`;
+            }
+            document.getElementById('facePagination').innerHTML = pag;
+
+        } catch (err) {
+            document.getElementById('faceLogsGrid').innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px;color:#ff3b30;">Error loading face logs: ${err.message}</div>`;
+        }
+    }
+
+    async function viewFaceLogDetail(logId) {
+        document.getElementById('fullFaceModal').classList.add('active');
+        document.getElementById('fullFaceContent').innerHTML = '<div style="text-align:center;padding:40px;"><i class="fas fa-spinner fa-spin" style="font-size:2rem;"></i></div>';
+        try {
+            const res = await fetch(`/api/admin/face-logs/${logId}/image`);
+            const data = await res.json();
+            const di = data.device_info || {};
+            const matched = data.match_result;
+            document.getElementById('fullFaceTitle').textContent = `${data.username} – ${data.timestamp_ist}`;
+            document.getElementById('fullFaceContent').innerHTML = `
+                <div style="position:relative;border-radius:16px;overflow:hidden;background:#000;margin-bottom:20px;">
+                    ${data.face_image_b64 ? `<img src="data:image/jpeg;base64,${data.face_image_b64}" class="full-face-img" alt="Face capture">` : '<div style="height:200px;display:flex;align-items:center;justify-content:center;color:#86868b;font-size:3rem;"><i class="fas fa-user-circle"></i></div>'}
+                    <div style="position:absolute;top:14px;right:14px;padding:8px 18px;border-radius:30px;font-weight:700;background:${matched?'rgba(52,199,89,0.9)':'rgba(255,59,48,0.9)'};color:white;">
+                        ${matched ? '✅ Face Matched' : '❌ Verification Failed'}
+                    </div>
+                </div>
+                <div class="imei-highlight">
+                    <div class="imei-label">IMEI / Device Identifier</div>
+                    <div class="imei-value">${di.imei || 'Not available (browser-based login)'}</div>
+                </div>
+                <div class="full-device-grid">
+                    <div class="full-device-item"><div class="label">Device Name</div><div class="value">${di.device_name || 'Unknown'}</div></div>
+                    <div class="full-device-item"><div class="label">Browser</div><div class="value">${di.browser || 'Unknown'}</div></div>
+                    <div class="full-device-item"><div class="label">Platform</div><div class="value">${di.platform || 'Unknown'}</div></div>
+                    <div class="full-device-item"><div class="label">Screen Resolution</div><div class="value">${di.screen || 'N/A'}</div></div>
+                    <div class="full-device-item"><div class="label">IP Address</div><div class="value">${data.ip_address || 'N/A'}</div></div>
+                    <div class="full-device-item"><div class="label">Timezone</div><div class="value">${di.timezone || 'N/A'}</div></div>
+                    <div class="full-device-item"><div class="label">RAM</div><div class="value">${di.device_memory ? di.device_memory + ' GB' : 'N/A'}</div></div>
+                    <div class="full-device-item"><div class="label">CPU Cores</div><div class="value">${di.hardware_concurrency || 'N/A'}</div></div>
+                </div>
+                <div style="margin-top:20px;padding:16px;background:#f5f5f7;border-radius:12px;font-size:0.85rem;color:#86868b;">
+                    <i class="fas fa-info-circle" style="color:#0071e3;"></i>
+                    <strong>User Agent:</strong> ${di.user_agent || 'N/A'}
+                </div>
+                ${data.lat && data.lng ? `
+                <div style="margin-top:16px;background:#f5f5f7;border-radius:14px;padding:16px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <strong><i class="fas fa-map-marked-alt" style="color:#0071e3;"></i> Verification Location & Google Map</strong>
+                        <a href="https://www.google.com/maps/search/?api=1&query=${data.lat},${data.lng}" target="_blank" style="font-size:0.8rem;color:#0071e3;font-weight:bold;text-decoration:none;">Open in Google Maps ➔</a>
+                    </div>
+                    <div style="border-radius:10px;overflow:hidden;border:1px solid #e5e5e7;">
+                        <iframe src="https://maps.google.com/maps?q=${data.lat},${data.lng}&z=16&output=embed" width="100%" height="160" style="border:0;display:block;" loading="lazy"></iframe>
+                    </div>
+                </div>` : ''}
+                <div style="margin-top:20px;display:flex;gap:12px;">
+                    <button class="btn btn-danger" onclick="deleteFaceLogFromModal('${logId}')"><i class="fas fa-trash"></i> Delete This Log</button>
+                    <button class="btn btn-ghost" onclick="closeFaceImageModal()">Close</button>
+                </div>`;
+        } catch (err) {
+            document.getElementById('fullFaceContent').innerHTML = `<div style="text-align:center;padding:40px;color:#ff3b30;">Error: ${err.message}</div>`;
+        }
+    }
+
+    async function deleteFaceLog(logId, btnEl) {
+        if (!confirm('Delete this face log? The image will be permanently removed.')) return;
+        try {
+            const res = await fetch(`/api/admin/face-logs/${logId}/delete`, { method: 'POST' });
+            const data = await res.json();
+            if (data.ok) { showAlert('Face log deleted', 'success'); btnEl.closest('.face-log-card').remove(); }
+            else showAlert(data.error, 'danger');
+        } catch { showAlert('Delete failed', 'danger'); }
+    }
+
+    async function deleteFaceLogFromModal(logId) {
+        if (!confirm('Delete this face log?')) return;
+        try {
+            const res = await fetch(`/api/admin/face-logs/${logId}/delete`, { method: 'POST' });
+            const data = await res.json();
+            if (data.ok) { showAlert('Deleted', 'success'); closeFaceImageModal(); loadFaceLogs(faceCurrentPage); }
+            else showAlert(data.error, 'danger');
+        } catch { showAlert('Delete failed', 'danger'); }
+    }
+
+    async function purgeOldLogs() {
+        const days = parseInt(document.getElementById('purgedays').value);
+        if (!confirm(`Delete all face logs older than ${days} days? This cannot be undone.`)) return;
+        try {
+            const res = await fetch('/api/admin/face-logs/purge-old', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ days }) });
+            const data = await res.json();
+            if (data.ok) { showAlert(data.message, 'success'); loadFaceLogs(1); }
+            else showAlert(data.error, 'danger');
+        } catch { showAlert('Purge failed', 'danger'); }
+    }
+
+    function clearFaceFilters() {
+        document.getElementById('filterUser').value = '';
+        document.getElementById('filterMatch').value = '';
+        document.getElementById('filterDate').value = '';
+        document.getElementById('filterShift').value = '';
+        loadFaceLogs(1);
+    }
+
+    function closeFaceImageModal() { document.getElementById('fullFaceModal').classList.remove('active'); }
+
+    // ── User Details Modal ────────────────────────────────────────────────
+    async function viewUserDetails(userId) {
+        try {
+            const res = await fetch(`/api/admin/user-stats/${userId}`);
+            const data = await res.json();
+            const shiftTarget = data.work_hours_target / 2;
+            let shiftHtml = '';
+            if (data.shift_usage) {
+                shiftHtml = '<h4 style="margin:20px 0 10px;">Shift Usage</h4>';
+                Object.entries(data.shift_usage).forEach(([shift, stats]) => {
+                    shiftHtml += `<div style="background:#f5f5f7;padding:16px;border-radius:12px;margin-bottom:12px;"><div style="display:flex;justify-content:space-between;"><strong>${stats.name}</strong><span>${stats.count} sessions</span></div><div>Total Hours: ${stats.total_hours.toFixed(1)} hrs</div></div>`;
+                });
+            }
+
+            // Face status section
+            let faceHtml = `
+                <div style="background:#f5f5f7;padding:16px;border-radius:12px;margin-top:16px;">
+                    <div style="font-size:0.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#86868b;margin-bottom:12px;">
+                        <i class="fas fa-camera" style="color:#0071e3;"></i> Face ID Status
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div>
+                            <div style="font-size:0.75rem;color:#86868b;">Registration</div>
+                            <div style="font-weight:700;">${data.face_registered ? '✅ Registered (' + (data.face_photo_count || 0) + ' photos)' : '❌ Not Registered'}</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.75rem;color:#86868b;">Face ID Required</div>
+                            <div style="font-weight:700;">${data.face_required ? '🔒 Yes — enforced' : '🔓 No — optional'}</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.75rem;color:#86868b;">Registration Allowed</div>
+                            <div style="font-weight:700;">${data.face_registration_enabled ? '✅ Admin enabled' : '❌ Admin blocked'}</div>
+                        </div>
+                    </div>
+                    ${data.face_thumb ? `<img src="data:image/jpeg;base64,${data.face_thumb}" style="width:100%;border-radius:10px;margin-top:12px;max-height:160px;object-fit:cover;">` : ''}
+                </div>`;
+
+            document.getElementById('userDetails').innerHTML = `
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="value">${data.total_working_days||0}</div><div class="label">Total Days</div></div>
+                    <div class="stat-card"><div class="value">${data.attendance_this_month||0}</div><div class="label">This Month</div></div>
+                    <div class="stat-card"><div class="value">${data.leaves_this_month||0}</div><div class="label">Leaves</div></div>
+                </div>
+                <div style="margin:20px 0;background:#f5f5f7;padding:16px;border-radius:12px;">
+                    <p><strong>Email:</strong> ${data.email||'N/A'}</p>
+                    <p style="margin-top:8px;"><strong>Target:</strong> ${data.work_hours_target} hrs/day (${shiftTarget} hrs per shift)</p>
+                </div>
+                ${faceHtml}
+                <div style="margin-top:20px;">
+                    <label><strong>Update Work Hours:</strong></label>
+                    <div style="display:flex;gap:10px;margin-top:10px;">
+                        <input type="number" id="newWorkHours" value="${data.work_hours_target}" step="0.5" style="flex:1;padding:10px;border-radius:8px;border:1px solid #e5e5e7;">
+                        <button class="btn btn-primary" onclick="updateWorkHours('${userId}')">Update</button>
+                    </div>
+                </div>
+                ${shiftHtml}`;
+            document.getElementById('userModal').classList.add('active');
+        } catch { showAlert('Failed to load user details', 'danger'); }
+    }
+
+    async function updateWorkHours(userId) {
+        const newHours = document.getElementById('newWorkHours').value;
+        try {
+            const res = await fetch('/api/admin/update-user-work-hours', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: userId, work_hours: parseFloat(newHours) }) });
+            const data = await res.json();
+            if (data.ok) { showAlert(data.message, 'success'); closeUserModal(); }
+            else showAlert(data.error, 'danger');
+        } catch { showAlert('Failed to update', 'danger'); }
+    }
+
+    function closeUserModal() { document.getElementById('userModal').classList.remove('active'); }
+
+    async function deleteUser(userId, username) {
+        if (!confirm(`Delete user "${username}"? This removes all their attendance, leaves, and face data.`)) return;
+        try {
+            const res = await fetch(`/admin/delete_user/${userId}`, { method:'POST' });
+            const data = await res.json();
+            if (data.ok) { showAlert(data.message, 'success'); setTimeout(() => location.reload(), 1000); }
+            else showAlert(data.error, 'danger');
+        } catch { showAlert('Error deleting user', 'danger'); }
+    }
+
+    // ── Leaves ────────────────────────────────────────────────────────────
+    function filterLeaves(status) { window.location.href = `/admin/dashboard?status=${status}`; }
+    function reviewLeave(leaveId, action) {
+        const comments = prompt(`Enter comments for ${action} leave:`);
+        if (comments === null) return;
+        fetch(`/api/admin/leave/${leaveId}/update`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ status: action, admin_comments: comments }) })
+        .then(r => r.json()).then(d => { if (d.ok) { showAlert(`Leave ${action}`, 'success'); setTimeout(() => location.reload(), 1000); } else showAlert(d.error, 'danger'); })
+        .catch(() => showAlert('Failed to update', 'danger'));
+    }
+
+    // ── Locations & Google Maps ───────────────────────────────────────────
+    let adminMap = null;
+    let mapMarkers = [];
+
+    async function loadLocations() {
+        const date = document.getElementById('locationDate').value;
+        if (!date) return;
+        try {
+            const res = await fetch(`/api/admin/user-locations/${date}`);
+            const data = await res.json();
+            let html = '';
+            
+            const mapContainer = document.getElementById('adminLocationsMap');
+            
+            if (!data.locations || !data.locations.length) {
+                html = '<div style="text-align:center;padding:40px;color:#86868b;"><i class="fas fa-map-marker-slash" style="font-size:3rem;margin-bottom:12px;display:block;"></i>No location records for this date</div>';
+                mapContainer.style.display = 'none';
+            } else {
+                mapContainer.style.display = 'block';
+
+                // Initialize or refresh main Leaflet Map
+                const officeLat = data.office_lat || 12.9248224;
+                const officeLng = data.office_lng || 77.5702351;
+
+                if (!adminMap) {
+                    adminMap = L.map('adminLocationsMap').setView([officeLat, officeLng], 14);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19,
+                        attribution: '© OpenStreetMap | JAIN Attendance'
+                    }).addTo(adminMap);
+                } else {
+                    adminMap.setView([officeLat, officeLng], 14);
+                    mapMarkers.forEach(m => adminMap.removeLayer(m));
+                    mapMarkers = [];
+                }
+
+                // Add JAIN Head Office Campus boundary circle (500m radius)
+                const campusCircle = L.circle([officeLat, officeLng], {
+                    color: '#0071e3',
+                    fillColor: '#0071e3',
+                    fillOpacity: 0.1,
+                    radius: 500
+                }).addTo(adminMap).bindPopup('<strong>JAIN University Campus</strong><br>500m allowed radius zone');
+                mapMarkers.push(campusCircle);
+
+                const bounds = L.latLngBounds([[officeLat, officeLng]]);
+
+                data.locations.forEach(l => {
+                    const di = l.device_info || {};
+                    const faceRequired = l.face_required;
+                    const hasCoords = l.login_lat && l.login_lng;
+
+                    if (hasCoords) {
+                        const marker = L.marker([l.login_lat, l.login_lng]).addTo(adminMap)
+                            .bindPopup(`
+                                <div style="font-family:sans-serif;padding:4px;">
+                                    <strong style="color:#0071e3;font-size:0.95rem;">${l.username}</strong><br>
+                                    <span style="font-size:0.8rem;color:#555;">Shift: ${l.shift_name}</span><br>
+                                    <span style="font-size:0.8rem;color:#555;">Login: ${l.login_time}</span><br>
+                                    <div style="font-size:0.75rem;margin-top:4px;color:#333;">${l.login_address}</div>
+                                    <a href="https://www.google.com/maps/search/?api=1&query=${l.login_lat},${l.login_lng}" target="_blank" style="font-size:0.75rem;color:#0071e3;display:inline-block;margin-top:6px;font-weight:bold;text-decoration:none;">View in Google Maps ➔</a>
+                                </div>
+                            `);
+                        mapMarkers.push(marker);
+                        bounds.extend([l.login_lat, l.login_lng]);
+                    }
+
+                    const googleMapsUrl = hasCoords ? `https://www.google.com/maps/search/?api=1&query=${l.login_lat},${l.login_lng}` : '#';
+                    const googleEmbedUrl = hasCoords ? `https://www.openstreetmap.org/export/embed.html?bbox=${l.login_lng-0.004},${l.login_lat-0.004},${l.login_lng+0.004},${l.login_lat+0.004}&layer=mapnik&marker=${l.login_lat},${l.login_lng}` : null;
+
+                    html += `<div style="background:#ffffff;border:1px solid rgba(0,0,0,0.06);box-shadow:0 4px 15px rgba(0,0,0,0.03);border-radius:16px;padding:20px;margin-bottom:18px;">
+                        <div style="display:flex;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;align-items:center;">
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <strong style="font-size:1.05rem;">${l.username}</strong>
+                                <span class="badge" style="background:${l.at_office?'#34c759':'#ff9500'};color:white;">${l.at_office?'🏛️ On Campus':'📡 Remote'}</span>
+                            </div>
+                            <div style="display:flex;gap:8px;align-items:center;">
+                                <span class="badge" style="background:${l.shift_type==='shift1'?'#0071e3':l.shift_type==='shift2'?'#ff9500':'#86868b'};color:white;">${l.shift_name}</span>
+                                ${faceRequired ? '<span class="badge" style="background:rgba(0,113,227,0.15);color:#0071e3;border:1px solid rgba(0,113,227,0.3);">🔒 Face ID</span>' : ''}
+                                ${hasCoords ? `<a href="${googleMapsUrl}" target="_blank" class="btn btn-sm btn-primary" style="padding:4px 10px;font-size:0.75rem;text-decoration:none;"><i class="fas fa-map-marked-alt"></i> Open Google Maps</a>` : ''}
+                            </div>
+                        </div>
+
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px;">
+                            <div>
+                                <div style="font-size:0.78rem;color:#86868b;font-weight:700;">LOGIN LOCATION</div>
+                                <div style="font-weight:600;margin-top:2px;">${l.login_time}</div>
+                                <div style="font-size:0.82rem;margin-top:4px;color:#444;"><i class="fas fa-location-dot" style="color:#0071e3;"></i> ${l.login_address}${hasCoords ? ` <span style="font-size:0.75rem;color:#888;">(${l.login_lat.toFixed(6)}, ${l.login_lng.toFixed(6)})</span>` : ''}</div>
+                            </div>
+                            ${l.logout_time ? `<div>
+                                <div style="font-size:0.78rem;color:#86868b;font-weight:700;">LOGOUT LOCATION</div>
+                                <div style="font-weight:600;margin-top:2px;">${l.logout_time}</div>
+                                <div style="font-size:0.82rem;margin-top:4px;color:#444;"><i class="fas fa-location-dot" style="color:#ff3b30;"></i> ${l.logout_address||'N/A'}${l.logout_lat && l.logout_lng ? ` <span style="font-size:0.75rem;color:#888;">(${l.logout_lat.toFixed(6)}, ${l.logout_lng.toFixed(6)})</span>` : ''}</div>
+                            </div>` : ''}
+                        </div>
+
+                        ${googleEmbedUrl ? `
+                        <div style="margin-top:12px;border-radius:12px;overflow:hidden;border:1px solid #e5e5e7;">
+                            <iframe src="${googleEmbedUrl}" width="100%" height="180" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                        </div>` : ''}
+
+                        <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:0.82rem;border-top:1px solid #f0f0f2;padding-top:12px;margin-top:12px;color:#666;">
+                            <span><i class="fas fa-mobile-alt" style="color:#0071e3;"></i> ${di.device_name||'Unknown'}</span>
+                            <span><i class="fas fa-globe"></i> ${di.browser||'-'}</span>
+                            <span><i class="fas fa-network-wired"></i> ${di.ip_address||'-'}</span>
+                            <span><i class="fas fa-barcode"></i> IMEI: ${di.imei||'N/A'}</span>
+                            <span style="margin-left:auto;font-weight:700;color:#0071e3;">${l.hours} hrs</span>
+                        </div>
+                    </div>`;
+                });
+
+                adminMap.fitBounds(bounds, { padding: [30, 30] });
+                setTimeout(() => adminMap.invalidateSize(), 300);
+            }
+            document.getElementById('locationsList').innerHTML = html;
+        } catch (err) {
+            showAlert('Failed to load locations: ' + err.message, 'danger');
+        }
+    }
+
+    // ── Analysis dashboard (Power-BI style) ───────────────────────────────
+    const AN_CATS = {
+        complete: { label: 'On track',       icon: 'fa-circle-check',        color: 'var(--ok)'   },
+        active:   { label: 'Still active',    icon: 'fa-circle-play',         color: 'var(--info)' },
+        early:    { label: 'Left early',      icon: 'fa-triangle-exclamation',color: 'var(--warn)' },
+        absent:   { label: 'Missed sign-in',  icon: 'fa-user-xmark',          color: 'var(--bad)'  },
+        on_leave: { label: 'On leave',        icon: 'fa-plane-departure',     color: 'var(--t3)'   },
+        off:      { label: 'Off / weekend',   icon: 'fa-mug-hot',             color: 'var(--t3)'   },
+    };
+    // Concrete colours for the donut/legend (conic-gradient can't read CSS vars reliably).
+    const AN_HEX = { complete:'#2E7D46', active:'#0071e3', early:'#C77700', absent:'#C0362C', on_leave:'#8F98A6', off:'#B8BEC7' };
+
+    async function loadAnalysisOverview() {
+        const dateEl = document.getElementById('analysisDate');
+        const day = dateEl ? dateEl.value : '';
+        const cols = document.getElementById('anColumns');
+        cols.innerHTML = '<div class="oa-empty"><i class="fas fa-circle-notch spin"></i><p>Loading analysis…</p></div>';
+        try {
+            const res = await fetch('/api/admin/analysis-overview?date=' + encodeURIComponent(day));
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed to load analysis');
+            renderAnalysis(data);
+        } catch (err) {
+            cols.innerHTML = '<div class="oa-empty"><i class="fas fa-triangle-exclamation"></i><p>' + err.message + '</p></div>';
+        }
+    }
+
+    function renderAnalysis(data) {
+        const t = data.totals;
+        // KPI tiles
+        document.getElementById('kpiRegistered').textContent = t.registered;
+        document.getElementById('kpiComplete').textContent   = t.complete;
+        document.getElementById('kpiActive').textContent     = t.active;
+        document.getElementById('kpiEarly').textContent      = t.early;
+        document.getElementById('kpiAbsent').textContent     = t.absent;
+        document.getElementById('kpiLeave').textContent      = t.on_leave;
+        document.getElementById('kpiOff').textContent        = t.off || 0;
+
+        // Donut (conic-gradient of the categories)
+        const order = ['complete', 'active', 'early', 'absent', 'on_leave', 'off'];
+        const denom = order.reduce((s, k) => s + (t[k] || 0), 0) || 1;
+        let acc = 0;
+        const stops = order.filter(k => t[k] > 0).map(k => {
+            const start = acc / denom * 360;
+            acc += t[k];
+            const end = acc / denom * 360;
+            return `${AN_HEX[k]} ${start}deg ${end}deg`;
+        });
+        const donut = document.getElementById('anDonut');
+        donut.style.background = stops.length
+            ? `conic-gradient(${stops.join(',')})`
+            : 'var(--line)';
+        document.getElementById('anDonutPct').textContent = data.rate + '%';
+
+        // Legend
+        document.getElementById('anLegend').innerHTML = order.map(k =>
+            `<div class="an-leg-item"><span class="an-dot" style="background:${AN_HEX[k]}"></span>
+               ${AN_CATS[k].label}<strong>${t[k] || 0}</strong></div>`
+        ).join('');
+
+        // Attendance rate bar
+        document.getElementById('anRateFill').style.width = data.rate + '%';
+        document.getElementById('anRateNote').textContent =
+            (data.weekend ? `${data.day_label} — ` : '')
+            + `${data.signed_in} of ${data.expected} expected signed in`
+            + (t.on_leave ? ` · ${t.on_leave} on leave` : '')
+            + (t.off ? ` · ${t.off} off` : '');
+
+        // Category columns with per-user progress
+        const cols = document.getElementById('anColumns');
+        cols.innerHTML = order.map(k => {
+            const people = (data.buckets[k] || []);
+            const cat = AN_CATS[k];
+            const rows = people.length ? people.map(p => anUserRow(p, k)).join('')
+                : '<div class="an-empty-row">Nobody</div>';
+            return `<section class="an-col">
+                <div class="an-col-head" style="border-color:${AN_HEX[k]}">
+                  <i class="fas ${cat.icon}" style="color:${AN_HEX[k]}"></i>
+                  <span>${cat.label}</span>
+                  <span class="an-col-count">${people.length}</span>
+                </div>
+                <div class="an-col-body">${rows}</div>
+              </section>`;
+        }).join('');
+    }
+
+    function anUserRow(p, cat) {
+        const timeline = (cat === 'complete' || cat === 'early' || cat === 'active')
+            ? `<div class="an-u-time">${p.login_time || '—'} → ${p.logout_time || (cat === 'active' ? 'active' : '—')} · ${p.hours}h${cat === 'early' ? ` (−${p.shortfall}h)` : ''}</div>`
+            : '';
+        const barColor = p.progress_pct >= 80 ? '#2E7D46' : p.progress_pct >= 50 ? '#C77700' : '#C0362C';
+        return `<div class="an-u">
+            <div class="an-u-top">
+              <span class="an-u-name">${p.username}</span>
+              <span class="an-u-prog">${p.progress_pct}%</span>
+            </div>
+            ${timeline}
+            <div class="an-u-bar"><div class="an-u-bar-fill" style="width:${p.progress_pct}%;background:${barColor}"></div></div>
+            <div class="an-u-sub">30-day: ${p.on_track_days}/${p.present_days} days on target · avg ${p.avg_hours}h</div>
+          </div>`;
+    }
+
+    // ── Individual attendance analysis (calendar + summary over a range) ──
+    const CAL_MONTHS = ['January','February','March','April','May','June',
+                        'July','August','September','October','November','December'];
+    let calUserId = null, calUsername = '';
+
+    function filterUserCalList() {
+        const q = (document.getElementById('anUserSearch').value || '').toLowerCase();
+        document.querySelectorAll('#anUserCalList .an-name').forEach(b => {
+            b.style.display = b.dataset.name.includes(q) ? '' : 'none';
+        });
+    }
+
+    function openUserCalendar(btn) {
+        calUserId = btn.dataset.uid;
+        calUsername = btn.dataset.fullname || '';
+        // Default range: 1st of the month being viewed → today.
+        const viewed = (document.getElementById('analysisDate').value || '').slice(0, 10)
+                       || new Date().toISOString().slice(0, 10);
+        document.getElementById('calFrom').value = viewed.slice(0, 8) + '01';
+        document.getElementById('calTo').value   = new Date().toISOString().slice(0, 10);
+        document.getElementById('calTitle').textContent = calUsername + ' · attendance';
+        document.getElementById('calendarModal').classList.add('active');
+        loadCalendar();
+    }
+
+    function closeCalendarModal() {
+        document.getElementById('calendarModal').classList.remove('active');
+    }
+
+    // The same range the calendar is showing, downloaded as a formatted workbook.
+    function downloadUserExcel() {
+        let from = document.getElementById('calFrom').value;
+        let to   = document.getElementById('calTo').value;
+        if (!calUserId || !from || !to) { showAlert('Pick a From and To date', 'danger'); return; }
+        if (from > to) [from, to] = [to, from];
+        window.location.href = `/api/admin/user-excel/${calUserId}?from=${from}&to=${to}`;
+    }
+
+    const CAL_STATUS_LABEL = {
+        present: 'Present', absent: 'Absent', leave: 'On leave',
+        holiday: 'Sunday · holiday', optional: 'Saturday · off',
+    };
+
+    // Day-by-day table under the calendar — mirrors the Excel export exactly.
+    function calDayTable(data) {
+        const body = (data.timeline || []).map(t => {
+            const cls  = t.status === 'present' ? (t.met ? 'met' : 'part') : t.status;
+            const note = (t.comments || []).map(c => escapeHtml(c.text)).join(' | ');
+            return `<tr class="${cls}">
+                <td>${t.date}</td>
+                <td>${t.weekday}</td>
+                <td>${CAL_STATUS_LABEL[t.status] || t.status}</td>
+                <td>${t.login_time || '—'}</td>
+                <td>${t.logout_time || '—'}</td>
+                <td>${t.status === 'present' ? t.hours + 'h' : '—'}</td>
+                <td>${escapeHtml(t.login_address || '—')}</td>
+                <td>${escapeHtml(t.logout_address || '—')}</td>
+                <td>${note || '—'}</td>
+            </tr>`;
+        }).join('');
+        return `<div class="cal-tbl-wrap"><table class="cal-tbl">
+            <thead><tr>
+              <th>Date</th><th>Day</th><th>Status</th><th>Login</th><th>Logout</th>
+              <th>Hours</th><th>Login location</th><th>Logout location</th><th>Work note</th>
+            </tr></thead>
+            <tbody>${body || '<tr><td colspan="9" style="text-align:center;color:var(--t3)">No days in this range.</td></tr>'}</tbody>
+        </table></div>`;
+    }
+
+    async function loadCalendar() {
+        let from = document.getElementById('calFrom').value;
+        let to   = document.getElementById('calTo').value;
+        if (!from || !to) { showAlert('Pick a From and To date', 'danger'); return; }
+        if (from > to) { [from, to] = [to, from]; document.getElementById('calFrom').value = from; document.getElementById('calTo').value = to; }
+        const body = document.getElementById('calBody');
+        body.innerHTML = '<div class="oa-empty"><i class="fas fa-circle-notch spin"></i><p>Loading…</p></div>';
+        try {
+            const res = await fetch(`/api/admin/user-calendar/${calUserId}?from=${from}&to=${to}`);
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed to load');
+            renderCalendar(data);
+        } catch (err) {
+            body.innerHTML = '<div class="oa-empty"><i class="fas fa-triangle-exclamation"></i><p>' + err.message + '</p></div>';
+        }
+    }
+
+    // Build a { 'YYYY-MM-DD': {status, hours, met, comments} } map from the day-by-day timeline.
+    function calStatusMap(data) {
+        const map = {};
+        (data.timeline || []).forEach(t => { map[t.date] = t; });
+        return map;
+    }
+
+    let calStatusMapCache = {};
+
+    // Show the note(s) logged for a given day in the side panel below the calendar.
+    function showCalNote(ds) {
+        const panel = document.getElementById('calNotePanel');
+        const t = calStatusMapCache[ds];
+        if (!t) { panel.style.display = 'none'; return; }
+        const notes = t.comments || [];
+        const statusLabel = { present: 'Present', absent: 'Absent', leave: 'On leave', holiday: 'Sunday · holiday', optional: 'Saturday · optional' }[t.status] || t.status;
+        const head = `${ds} · ${statusLabel}${t.status === 'present' ? ` · ${t.hours}h` : ''}`;
+        const body = notes.length
+            ? notes.map(c => `<div class="cal-note-item"><span class="cal-note-shift">${escapeHtml(c.shift)}</span>${escapeHtml(c.text)}</div>`).join('')
+            : '<div class="cal-note-empty">No note logged for this day.</div>';
+        panel.innerHTML = `<div class="cal-note-head"><strong>${head}</strong><button class="oa-btn oa-btn-quiet oa-btn-sm" onclick="document.getElementById('calNotePanel').style.display='none'"><i class="fas fa-xmark"></i></button></div><div class="cal-note-body">${body}</div>`;
+        panel.style.display = 'block';
+    }
+
+    // One month grid, cells coloured by the day's status.
+    function calMonthGrid(monthStr, statusMap) {
+        const [y, m] = monthStr.split('-').map(Number);
+        const startDow = new Date(Date.UTC(y, m - 1, 1)).getUTCDay();   // 0=Sun
+        const daysInMonth = new Date(Date.UTC(y, m, 0)).getUTCDate();
+        const dow = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        let cells = dow.map(d => `<div class="cal-dow">${d}</div>`).join('');
+        for (let i = 0; i < startDow; i++) cells += '<div class="cal-cell empty"></div>';
+        for (let day = 1; day <= daysInMonth; day++) {
+            const ds = `${monthStr}-${String(day).padStart(2, '0')}`;
+            const t = statusMap[ds];
+            let cls = 'off', tip = '';
+            if (t) {
+                if (t.status === 'present')      { cls = t.met ? 'met' : 'part'; tip = `${t.hours}h`; }
+                else if (t.status === 'absent')  { cls = 'absent';  tip = 'Absent'; }
+                else if (t.status === 'leave')   { cls = 'leave';   tip = 'On leave'; }
+                else if (t.status === 'holiday') { cls = 'holiday'; tip = 'Sunday · holiday'; }
+                else if (t.status === 'optional'){ cls = 'optional';tip = 'Saturday · optional'; }
+            }
+            const hasNote = !!(t && t.comments && t.comments.length);
+            if (hasNote) { cls += ' has-note'; tip += (tip ? ' · ' : '') + 'note logged'; }
+            cells += `<div class="cal-cell ${cls}" title="${tip}" ${t ? `onclick="showCalNote('${ds}')"` : ''}>
+                        <span class="cal-num">${day}</span>
+                        ${t && t.status === 'present' ? `<span class="cal-hrs">${t.hours}h</span>` : ''}
+                        ${hasNote ? '<span class="cal-note-dot"></span>' : ''}
+                      </div>`;
+        }
+        return `<div class="cal-monthblock">
+                  <div class="cal-month">${CAL_MONTHS[m - 1]} ${y}</div>
+                  <div class="cal-grid">${cells}</div>
+                </div>`;
+    }
+
+    function renderCalendar(data) {
+        const s = data.summary || {};
+        const tiles = [
+            { n: s.present ?? 0,  l: 'Days worked', c: '#1E7D46' },
+            { n: s.absent ?? 0,   l: 'Absent',      c: '#C0362C' },
+            { n: s.leave ?? 0,    l: 'On leave',    c: '#8F98A6' },
+            { n: (s.total_hours ?? 0) + 'h', l: 'Total hours', c: 'var(--ink-800)' },
+            { n: (s.avg_hours ?? 0) + 'h',   l: 'Avg / day',   c: 'var(--ink-800)' },
+            { n: (s.attendance_rate ?? 0) + '%', l: 'Attendance', c: '#B0740A' },
+        ];
+        document.getElementById('calSummary').innerHTML = tiles.map(t =>
+            `<div class="cal-stat"><div class="n" style="color:${t.c}">${t.n}</div><div class="l">${t.l}</div></div>`
+        ).join('') + `<div class="cal-note">${s.working_days ?? 0} compulsory working days (Mon–Fri) in this range · Sat optional, Sun holiday${s.saturdays_worked ? ` · ${s.saturdays_worked} Saturday(s) worked` : ''}</div>`;
+
+        const statusMap = calStatusMap(data);
+        calStatusMapCache = statusMap;
+        const notePanel = document.getElementById('calNotePanel');
+        if (notePanel) notePanel.style.display = 'none';
+        const months = data.months || [];
+        document.getElementById('calBody').innerHTML =
+            months.length ? months.map(mo => calMonthGrid(mo, statusMap)).join('')
+                          : '<div class="oa-empty"><i class="fas fa-calendar-xmark"></i><p>No working days in this range yet.</p></div>';
+
+        const n = data.days_logged;
+        document.getElementById('calDaysCount').textContent =
+            `${n} day${n !== 1 ? 's' : ''} · ${data.total_hours}h`;
+
+        document.getElementById('calTable').innerHTML = calDayTable(data);
+    }
+
+    // ── Attendance calendar tab: everyone, one month at a time ────────────
+    let acMonth = new Date().toISOString().slice(0, 7);   // 'YYYY-MM'
+    let acDayCounts = {};
+
+    function acShiftMonth(delta) {
+        let [y, m] = acMonth.split('-').map(Number);
+        m += delta;
+        if (m < 1) { m = 12; y--; } else if (m > 12) { m = 1; y++; }
+        acMonth = `${y}-${String(m).padStart(2, '0')}`;
+        loadCalendarOverview();
+    }
+
+    async function loadCalendarOverview() {
+        const grid = document.getElementById('acGrid');
+        grid.innerHTML = '<div class="oa-empty"><i class="fas fa-circle-notch spin"></i><p>Loading…</p></div>';
+        try {
+            const res = await fetch(`/api/admin/calendar-overview?month=${acMonth}`);
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed to load');
+            acDayCounts = data.days || {};
+            const [y, m] = acMonth.split('-').map(Number);
+            document.getElementById('acMonthLabel').textContent = `${CAL_MONTHS[m - 1]} ${y}`;
+            renderAcGrid(data.total_people || 0);
+        } catch (err) {
+            grid.innerHTML = '<div class="oa-empty"><i class="fas fa-triangle-exclamation"></i><p>' + err.message + '</p></div>';
+        }
+    }
+
+    function renderAcGrid(totalPeople) {
+        const [y, m] = acMonth.split('-').map(Number);
+        const startDow = new Date(Date.UTC(y, m - 1, 1)).getUTCDay();
+        const daysInMonth = new Date(Date.UTC(y, m, 0)).getUTCDate();
+        const dow = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const todayStr = new Date().toISOString().slice(0, 10);
+        let cells = dow.map(d => `<div class="cal-dow">${d}</div>`).join('');
+        for (let i = 0; i < startDow; i++) cells += '<div class="cal-cell empty"></div>';
+        for (let day = 1; day <= daysInMonth; day++) {
+            const ds = `${acMonth}-${String(day).padStart(2, '0')}`;
+            const n = acDayCounts[ds] || 0;
+            const wd = new Date(Date.UTC(y, m - 1, day)).getUTCDay();
+            let cls = 'off', tip = 'No data';
+            if (ds > todayStr) { cls = 'off'; tip = ''; }
+            else if (n > 0) { cls = (totalPeople && n >= totalPeople) ? 'met' : 'part'; tip = `${n} signed in`; }
+            else if (wd === 0) { cls = 'holiday'; tip = 'Sunday · holiday'; }
+            else if (wd === 6) { cls = 'optional'; tip = 'Saturday · optional'; }
+            else { cls = 'absent'; tip = 'Nobody signed in'; }
+            cells += `<div class="cal-cell ${cls}" title="${tip}" onclick="acShowDay('${ds}')">
+                        <span class="cal-num">${day}</span>
+                        ${n ? `<span class="cal-hrs">${n}</span>` : ''}
+                      </div>`;
+        }
+        document.getElementById('acGrid').innerHTML = `<div class="cal-grid">${cells}</div>`;
+    }
+
+    async function acShowDay(ds) {
+        const card = document.getElementById('acDayCard');
+        card.style.display = 'block';
+        document.getElementById('acDayTitle').textContent = ds;
+        document.getElementById('acDayList').innerHTML = '<div class="oa-empty"><i class="fas fa-circle-notch spin"></i><p>Loading…</p></div>';
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        try {
+            const res = await fetch(`/api/admin/user-locations/${ds}`);
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed to load');
+            const locs = data.locations || [];
+            document.getElementById('acDayCount').textContent = `${data.count || 0} signed in`;
+            document.getElementById('acDayList').innerHTML = locs.length ? locs.map(l => `
+                <div class="ac-day-item">
+                    <div class="ac-day-item-head">
+                        <strong>${escapeHtml(l.username)}</strong>
+                        <span class="oa-tag ${l.at_office ? 'ok' : 'warn'}">${l.at_office ? 'On campus' : 'Remote'}</span>
+                        <span class="oa-tag">${escapeHtml(l.shift_name)}</span>
+                        <span class="spacer"></span>
+                        <span class="ac-day-item-hrs">${l.hours}h</span>
+                    </div>
+                    <div class="ac-day-item-times">
+                        <span><i class="fas fa-right-to-bracket"></i> ${l.login_time} · ${escapeHtml(l.login_address || 'N/A')}</span>
+                        ${l.logout_time ? `<span><i class="fas fa-right-from-bracket"></i> ${l.logout_time} · ${escapeHtml(l.logout_address || 'N/A')}</span>` : ''}
+                    </div>
+                    ${l.work_comment ? `<div class="ac-day-item-note"><i class="fas fa-note-sticky"></i> ${escapeHtml(l.work_comment)}</div>` : ''}
+                </div>
+            `).join('') : '<div class="oa-empty"><i class="fas fa-calendar-xmark"></i><p>No one signed in this day.</p></div>';
+        } catch (err) {
+            document.getElementById('acDayList').innerHTML = '<div class="oa-empty"><i class="fas fa-triangle-exclamation"></i><p>' + err.message + '</p></div>';
+        }
+    }
+
+    // ── Sign-in analysis: date range + users + title → download / share ───
+    let anTitleTouched = false;   // has the admin typed their own title?
+
+    function anSelectedUsers() {
+        return Array.from(document.querySelectorAll('.an-user:checked')).map(c => c.value);
+    }
+
+    function anUsersAll(checked) {
+        document.querySelectorAll('.an-user').forEach(c => { c.checked = checked; });
+        anUsersChanged();
+    }
+
+    function anUsersChanged() {
+        const sel = anSelectedUsers();
+        const label = document.getElementById('anUsersCount');
+        if (label) label.textContent = sel.length ? `${sel.length} selected` : 'All users';
+        // Auto-fill the title from the selection until the admin edits it themselves.
+        if (!anTitleTouched) {
+            const t = document.getElementById('anTitle');
+            if (t) {
+                if (!sel.length)        t.value = 'users-all';
+                else if (sel.length <= 3) t.value = 'users-' + sel.join('-');
+                else                    t.value = `users-${sel.length}`;
+            }
+        }
+    }
+
+    function anGetRange() {
+        const from = document.getElementById('anFrom').value;
+        const to   = document.getElementById('anTo').value;
+        if (!from || !to) { showAlert('Pick both a From and a To date', 'danger'); return null; }
+        return (from <= to) ? { from, to } : { from: to, to: from };  // tolerate reversed
+    }
+
+    function anTitle() {
+        const t = document.getElementById('anTitle');
+        return (t && t.value.trim()) || 'Sign-in analysis';
+    }
+
+    function downloadAnalysis() {
+        const r = anGetRange();
+        if (!r) return;
+        const params = new URLSearchParams({ from: r.from, to: r.to, title: anTitle() });
+        const users = anSelectedUsers();
+        if (users.length) params.set('users', users.join(','));
+        window.location.href = '/admin/analysis/excel?' + params.toString();
+    }
+
+    async function createShareLink(kind) {
+        kind = (kind === 'overall') ? 'overall' : 'range';
+        const payload = { kind, users: anSelectedUsers(), title: anTitle() };
+        if (kind === 'range') {
+            const r = anGetRange();
+            if (!r) return;
+            payload.from = r.from; payload.to = r.to;
+        }
+        const btn = document.getElementById(kind === 'overall' ? 'analysisOverallBtn' : 'analysisShareBtn');
+        const original = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-circle-notch spin"></i> Creating…';
+        try {
+            const res = await fetch('/api/admin/analysis/share', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed to create link');
+            document.getElementById('analysisShareUrl').value = data.url;
+            document.getElementById('analysisShareOpen').href  = data.url;
+            document.getElementById('analysisShareResult').style.display = 'block';
+            showAlert((kind === 'overall' ? 'Overall (live) link ready' : 'Monthly link ready')
+                      + ' — works without login', 'success');
+            loadShares();   // keep the saved-links history current
+        } catch (err) {
+            showAlert(err.message, 'danger');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = original;
+        }
+    }
+
+    function copyShareLink() {
+        copyText(document.getElementById('analysisShareUrl').value);
+    }
+
+    function copyText(text) {
+        const done = () => showAlert('Link copied', 'success');
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+        } else {
+            fallbackCopy(text, done);
+        }
+    }
+    function fallbackCopy(text, done) {
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); done(); } catch (e) {}
+        ta.remove();
+    }
+
+    // ── Saved share links (history) ───────────────────────────────────────
+    let anShares = [];   // last-loaded list, so Reuse can read a row without re-fetching
+
+    async function loadShares() {
+        const box = document.getElementById('analysisSharesList');
+        if (!box) return;
+        try {
+            const res = await fetch('/api/admin/analysis/shares');
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed to load');
+            anShares = data.shares || [];
+            renderShares();
+        } catch (err) {
+            box.innerHTML = '<div class="ad-hint">Could not load saved links: ' + err.message + '</div>';
+        }
+    }
+
+    function renderShares() {
+        const box = document.getElementById('analysisSharesList');
+        if (!anShares.length) {
+            box.innerHTML = '<div class="ad-hint">No saved links yet. Create one above and it stays here.</div>';
+            return;
+        }
+        box.innerHTML = anShares.map((s, i) => {
+            const overall = (s.kind === 'overall');
+            const dates = s.dates || [];
+            const span = overall
+                ? 'Live · any day'
+                : (dates.length ? (dates.length === 1 ? dates[0] : `${dates[0]} → ${dates[dates.length - 1]} (${dates.length}d)`) : '—');
+            const who = (s.users && s.users.length) ? `${s.users.length} user(s)` : 'All users';
+            const badge = overall
+                ? '<span class="ad-kind kind-overall">Overall</span>'
+                : '<span class="ad-kind kind-range">Monthly</span>';
+            return `<div class="ad-saved-item">
+                <div class="ad-saved-info">
+                  <div class="ad-saved-title">${badge} ${escapeHtml(s.title || 'Sign-in analysis')}</div>
+                  <div class="ad-saved-meta">${span} · ${who}${s.created_at ? ' · ' + s.created_at : ''}</div>
+                </div>
+                <div class="ad-saved-acts">
+                  <button type="button" class="oa-btn oa-btn-quiet oa-btn-sm" onclick="copyText('${s.url}')" title="Copy link"><i class="fas fa-copy"></i></button>
+                  <a class="oa-btn oa-btn-quiet oa-btn-sm" href="${s.url}" target="_blank" title="Open"><i class="fas fa-arrow-up-right-from-square"></i></a>
+                  <button type="button" class="oa-btn oa-btn-quiet oa-btn-sm" onclick="reuseShare(${i})" title="Load back into the form"><i class="fas fa-rotate-left"></i></button>
+                  <button type="button" class="oa-btn oa-btn-quiet oa-btn-sm" onclick="revokeShare('${s.token}')" title="Revoke"><i class="fas fa-trash"></i></button>
+                </div>
+              </div>`;
+        }).join('');
+    }
+
+    function reuseShare(i) {
+        const s = anShares[i];
+        if (!s) return;
+        const dates = s.dates || [];
+        if (dates.length) {
+            const from = document.getElementById('anFrom'), to = document.getElementById('anTo');
+            from.value = dates[0]; from.dataset.touched = '1';
+            to.value = dates[dates.length - 1]; to.dataset.touched = '1';
+        }
+        const wanted = new Set(s.users || []);
+        document.querySelectorAll('.an-user').forEach(c => { c.checked = wanted.has(c.value); });
+        anTitleTouched = true;
+        document.getElementById('anTitle').value = s.title || '';
+        anUsersChanged();
+        showAlert('Loaded "' + (s.title || 'analysis') + '" back into the form', 'success');
+        document.querySelector('.ad-analysis').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    async function revokeShare(token) {
+        if (!confirm('Revoke this link? Anyone holding it will no longer be able to open it.')) return;
+        try {
+            const res = await fetch('/api/admin/analysis/share/' + token + '/revoke', { method: 'POST' });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed');
+            showAlert('Link revoked', 'success');
+            loadShares();
+        } catch (err) {
+            showAlert(err.message, 'danger');
+        }
+    }
+
+    function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, c =>
+            ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    // ── Early Logouts ─────────────────────────────────────────────────────
+    async function loadEarlyLogouts() {
+        const listEl = document.getElementById('earlyLogoutsList');
+        try {
+            const res  = await fetch('/api/admin/early-logouts');
+            const data = await res.json();
+            const rows = data.early_logouts || [];
+
+            document.querySelectorAll('[data-early-count]').forEach(e => { e.textContent = rows.length; });
+
+            if (!rows.length) {
+                listEl.innerHTML =
+                    '<div class="oa-empty"><i class="fas fa-circle-check" style="color:var(--ok)"></i>' +
+                    '<p>Everyone met their target today</p></div>';
+                return;
+            }
+
+            listEl.innerHTML = rows.map(e => `
+                <div class="oa-card" style="border-left:3px solid var(--warn);margin-bottom:10px">
+                  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px">
+                    <strong style="font-size:.88rem">${e.username}</strong>
+                    <span class="oa-tag">${e.shift_name}</span>
+                  </div>
+                  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+                    <div>
+                      <div style="font-size:.6rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--t3)">Worked</div>
+                      <div class="oa-num" style="font-weight:700;color:var(--bad)">${e.hours_worked}h</div>
+                    </div>
+                    <div>
+                      <div style="font-size:.6rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--t3)">Target</div>
+                      <div class="oa-num" style="font-weight:700">${e.target_hours}h</div>
+                    </div>
+                    <div>
+                      <div style="font-size:.6rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--t3)">Short by</div>
+                      <div class="oa-num" style="font-weight:700;color:var(--warn)">${e.shortfall}h</div>
+                    </div>
+                  </div>
+                  <div class="oa-num" style="margin-top:10px;font-size:.7rem;color:var(--t2)">
+                    In ${e.login_time} \u2192 out ${e.logout_time}
+                  </div>
+                </div>`).join('');
+        } catch (err) {
+            listEl.innerHTML = '<div class="oa-empty"><i class="fas fa-triangle-exclamation"></i><p>Could not load the list. Try again.</p></div>';
+        }
+    }
+
+    // Close modals on outside click
+    ['userModal','fullFaceModal','calendarModal'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('click', e => {
+            if (e.target === e.currentTarget) {
+                if (id === 'userModal') closeUserModal();
+                else if (id === 'calendarModal') closeCalendarModal();
+                else closeFaceImageModal();
+            }
+        });
+    });
+
+    // Analysis: mark date fields as user-touched so loadLocations stops syncing them,
+    // and flag the title as user-owned once the admin edits it (stops auto-fill).
+    ['anFrom', 'anTo'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('change', () => { el.dataset.touched = '1'; });
+    });
+    const anTitleEl = document.getElementById('anTitle');
+    if (anTitleEl) anTitleEl.addEventListener('input', () => { anTitleTouched = true; });
+    if (typeof anUsersChanged === 'function') anUsersChanged();
+
+    // Init
+    loadDashboardStats();
