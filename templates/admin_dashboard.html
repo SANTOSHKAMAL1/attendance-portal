@@ -28,9 +28,9 @@
   <!-- ══ LEFT RAIL ════════════════════════════════════════════ -->
   <aside class="oa-rail">
     <div class="oa-rail-head">
-      <div class="ojix-mark signature"><div class="ojix-rule"></div><div class="ojix-word">OJI<x>X</x></div></div>
-      <div>
-        <div class="org">Engineering &amp; Technology LLP</div>
+      <img class="ws-badge" src="{{ url_for('static', filename='images/ojix-icon-512.png') }}" alt="">
+      <div class="ws-meta">
+        <div class="org">OJIX</div>
         <div class="sub">Admin console</div>
       </div>
     </div>
@@ -48,8 +48,13 @@
       <button class="oa-navitem danger" onclick="logout()"><i class="fas fa-arrow-right-from-bracket"></i> Sign out</button>
     </nav>
     <div class="oa-rail-foot">
-      Signed in as <strong style="color:var(--accent-600)">{{ current_user.username }}</strong><br>
-      OJIX, Bengaluru
+      <div class="rail-user">
+        <div class="av">{{ current_user.username[0]|upper }}</div>
+        <div class="bd">
+          <div class="nm">{{ current_user.username }}</div>
+          <div class="em">Administrator · OJIX</div>
+        </div>
+      </div>
     </div>
   </aside>
 

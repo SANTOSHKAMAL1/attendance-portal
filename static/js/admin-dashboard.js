@@ -99,7 +99,7 @@
                           <span class="spacer"></span>
                           <span class="sec-mono">${escapeHtml(f.time || '')}</span></div>
                         <div class="sec-item-sub">${
-                          f.distance != null ? ' · distance ' + f.distance : ''}</div>
+                          f.distance != null ? 'distance ' + f.distance : ''}</div>
                       </div>`),
 
             secGroup('Signed in, never signed out', 'fa-hourglass-half', 'warn',
@@ -108,8 +108,6 @@
 
             secGroup('Under an hour', 'fa-stopwatch', 'warn', '',
                 data.short_sessions, secPerson),
-
-            secGroup('Signed in from off campus', 'fa-tower-broadcast', 'info', '',
 
             secGroup('Same network, different people', 'fa-wifi', 'info',
                 'Normal on a shared office or hostel Wi-Fi — listed for completeness only.',

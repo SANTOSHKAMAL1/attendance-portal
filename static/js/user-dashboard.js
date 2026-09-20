@@ -1208,50 +1208,11 @@ function devInfo(){
   return{userAgent:navigator.userAgent,platform:navigator.platform,screen:`${screen.width}x${screen.height}`,deviceMemory:navigator.deviceMemory||'N/A',cores:navigator.hardwareConcurrency||'N/A',timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,imei:'Not available (browser)'};
 }
 
-async function loadTeamToday(){
-  try{
-    const res  = await fetch('/api/user/team-today');
-    const data = await res.json();
-    if(!data.ok) return;
-
-    document.querySelectorAll('[data-team-count]').forEach(b=>{
-      b.textContent = data.count + (data.count === 1 ? ' on duty' : ' on duty');
-    });
-
-    const html = (!data.team || !data.team.length)
-      ? '<div class="oa-empty"><i class="fas fa-user-clock"></i><p>Nobody has signed in yet today</p></div>'
-      : data.team.map(m => {
-          const badge = m.location_badge === 'on-campus' ? 'badge-hq'
-                      : m.location_badge === 'near-campus' ? 'badge-near'
-                      : 'badge-remote';
-          const initial = (m.username || '?').charAt(0).toUpperCase();
-          const where = m.login_address
-            ? `<div class="loc"><i class="fas fa-location-dot"></i><span>${m.login_address}</span></div>`
-            : '';
-          return `
-            <div class="oa-mate ${m.is_current_user ? 'self' : ''}">
-              <div class="av">${initial}</div>
-              <div class="bd">
-                <div class="nm">${m.username}${m.is_current_user ? '<span class="you">you</span>' : ''}</div>
-                <div class="mt">${m.shift_name} \u00b7 in at ${m.login_time}</div>
-                ${where}
-              </div>
-              <span class="badge ${badge}">${m.location_status}</span>
-            </div>`;
-        }).join('');
-
-    document.querySelectorAll('[data-team-list]').forEach(el => { el.innerHTML = html; });
-  }catch(e){
-    console.error('Team roster failed:', e);
-  }
-}
-
 // ─ Init ─
-Promise.all([loadDD(), loadTeamToday()]).then(() => {
+Promise.all([loadDD()]).then(() => {
   setTimeout(refreshLocation, 200);
 }).catch(() => {
   setTimeout(refreshLocation, 200);
 });
 setInterval(loadDD, 60000);
-setInterval(loadTeamToday, 60000);
 

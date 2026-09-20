@@ -72,29 +72,34 @@
   <!-- ══ LEFT RAIL (web) ══════════════════════════════════════ -->
   <aside class="oa-rail">
     <div class="oa-rail-head">
-      <div class="ojix-mark signature"><div class="ojix-rule"></div><div class="ojix-word">OJI<x>X</x></div></div>
-      <div>
-        <div class="org">Engineering &amp; Technology LLP</div>
-        <div class="sub">GSTIN 29AAKFO3656Q1ZB</div>
+      <img class="ws-badge" src="{{ url_for('static', filename='images/ojix-icon-512.png') }}" alt="">
+      <div class="ws-meta">
+        <div class="org">OJIX</div>
+        <div class="sub">Engineering &amp; Technology LLP</div>
       </div>
     </div>
     <nav class="oa-rail-nav">
+      <div class="rail-group">Attendance</div>
       <button class="oa-navitem on" data-tab="normal" onclick="goTab('normal')"><i class="fas fa-clock"></i> Today</button>
       <button class="oa-navitem" data-tab="shift" onclick="goTab('shift')" style="display:none"><i class="fas fa-layer-group"></i> Shifts</button>
+      <button class="oa-navitem" onclick="scrollToLocationCard()"><i class="fas fa-location-dot"></i> Your location</button>
+
+      <div class="rail-group">Records</div>
       <button class="oa-navitem" data-tab="stats" onclick="goTab('stats')"><i class="fas fa-chart-simple"></i> Statistics</button>
       <button class="oa-navitem" data-tab="calendar" onclick="goTab('calendar')"><i class="fas fa-calendar-days"></i> Calendar</button>
-      <button class="oa-navitem" onclick="scrollToLocationCard()"><i class="fas fa-location-dot"></i> Your location</button>
-      <div class="oa-dsep"></div>
       <button class="oa-navitem" onclick="openLeave()"><i class="fas fa-calendar-xmark"></i> Apply for leave</button>
       <button class="oa-navitem" id="di-face-reg-web" style="display:none" onclick="openFaceRegIfAllowed()"><i class="fas fa-camera"></i> Register face</button>
-      <div class="oa-dsep"></div>
+
+      <span class="spacer" style="flex:1"></span>
       <button class="oa-navitem danger" onclick="handleLogout()"><i class="fas fa-arrow-right-from-bracket"></i> Sign out</button>
     </nav>
     <div class="oa-rail-foot">
-      <strong style="color:var(--accent-600)">OJIX</strong><br>
-      Bengaluru
-      <div style="font-size:0.75rem;margin-top:8px;padding-top:6px;border-top:1px solid var(--line);color:var(--t2)" id="railLocFoot">
-        <i class="fas fa-location-dot" style="color:#34C759"></i> <span id="railLocText">Checking location…</span>
+      <div class="rail-user">
+        <div class="av">{{ current_user.username[0]|upper }}</div>
+        <div class="bd">
+          <div class="nm">{{ current_user.username }}</div>
+          <div class="em" id="railLocText">Checking location…</div>
+        </div>
       </div>
     </div>
   </aside>
@@ -302,18 +307,6 @@
         </div>
 
         <div>
-          <!-- ── Who's on duty (with locations) ── -->
-          <section class="oa-card">
-            <div class="oa-card-head">
-              <h3>On duty today</h3>
-              <span class="spacer"></span>
-              <span class="oa-tag gold" data-team-count>Loading</span>
-            </div>
-            <div class="oa-roster" data-team-list>
-              <div class="oa-empty"><i class="fas fa-circle-notch spin"></i><p>Loading roster…</p></div>
-            </div>
-          </section>
-
           <!-- ── Map ── -->
           <section class="oa-card" id="userMapCard" style="display:none">
             <div class="oa-card-head">
@@ -435,19 +428,6 @@
           </section>
         </div>
 
-        <div>
-          <!-- Same roster, mirrored into the shift view -->
-          <section class="oa-card">
-            <div class="oa-card-head">
-              <h3>On duty today</h3>
-              <span class="spacer"></span>
-              <span class="oa-tag gold" data-team-count>Loading</span>
-            </div>
-            <div class="oa-roster" data-team-list>
-              <div class="oa-empty"><i class="fas fa-circle-notch spin"></i><p>Loading roster…</p></div>
-            </div>
-          </section>
-        </div>
       </div>
     </div>
 

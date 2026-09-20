@@ -35,10 +35,10 @@
   <!-- ── Left rail (web) ── -->
   <aside class="oa-rail">
     <div class="oa-rail-head">
-      <div class="ojix-mark signature"><div class="ojix-rule"></div><div class="ojix-word">OJI<x>X</x></div></div>
-      <div>
-        <div class="org">Engineering &amp; Technology LLP</div>
-        <div class="sub">GSTIN 29AAKFO3656Q1ZB</div>
+      <img class="ws-badge" src="{{ url_for('static', filename='images/ojix-icon-512.png') }}" alt="">
+      <div class="ws-meta">
+        <div class="org">OJIX</div>
+        <div class="sub">Engineering &amp; Technology LLP</div>
       </div>
     </div>
     <nav class="oa-rail-nav">
@@ -50,8 +50,17 @@
       {% endblock %}
     </nav>
     <div class="oa-rail-foot">
-      OJIX · Bengaluru<br>
-      <span style="opacity:.65">Attendance Portal</span>
+      {% if current_user.is_authenticated %}
+      <div class="rail-user">
+        <div class="av">{{ current_user.username[0]|upper }}</div>
+        <div class="bd">
+          <div class="nm">{{ current_user.username }}</div>
+          <div class="em">OJIX · Bengaluru</div>
+        </div>
+      </div>
+      {% else %}
+      OJIX · Bengaluru
+      {% endif %}
     </div>
   </aside>
 
