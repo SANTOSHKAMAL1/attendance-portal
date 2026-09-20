@@ -296,6 +296,49 @@ def load_user(user_id):
     return None
 
 
+def ensure_bootstrap_admin():
+    """Create the super-admin named in the environment, if it is missing.
+
+    .env documented ADMIN_USERNAME/ADMIN_PASSWORD as a super-admin "created
+    on first run", but nothing ever read them, so a fresh database had no
+    way in: no admin exists, and only an admin can create users.
+
+    This only ever inserts. If the username is already present it leaves the
+    document untouched, so changing ADMIN_PASSWORD later will NOT reset a
+    password that has since been changed elsewhere. To rotate it, delete the
+    user document and redeploy — the account is recreated from the current
+    environment. Runs once per cold start and costs a single indexed lookup.
+    """
+    username = (os.environ.get("ADMIN_USERNAME") or "").strip()
+    password = os.environ.get("ADMIN_PASSWORD") or ""
+    if not username or not password:
+        return
+
+    try:
+        if mongo.db.users.find_one({"username": username}):
+            return
+        mongo.db.users.insert_one({
+            "username": username,
+            "password": bcrypt.generate_password_hash(password).decode("utf-8"),
+            "role": "admin",
+            "email": os.environ.get("ADMIN_EMAIL") or ADMIN_EMAIL,
+            "work_hours": DEFAULT_WORK_HOURS,
+            "created_at": datetime.utcnow(),
+            "face_registered": False,
+            "face_required": False,
+            "face_registration_enabled": False,
+            "shift_login_enabled": False,
+        })
+        print(f"[BOOTSTRAP] Created super-admin '{username}'")
+    except Exception as e:
+        # Never take the app down over this; the login page must still render
+        # so the failure is visible and fixable.
+        print(f"[BOOTSTRAP WARNING] Could not ensure admin '{username}': {e}")
+
+
+ensure_bootstrap_admin()
+
+
 # ─────────────────────────────────────────────────────────────
 #  UTILITY FUNCTIONS
 # ─────────────────────────────────────────────────────────────
