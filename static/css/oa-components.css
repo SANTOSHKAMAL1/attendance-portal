@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════
-   OFFICE OF ACADEMICS · ATTENDANCE
+   OJIX · ATTENDANCE
    oa-components.css — cards, controls, data display, overlays
    ══════════════════════════════════════════════════════════════ */
 
@@ -14,7 +14,7 @@
   margin-bottom: 14px;
 }
 .oa-card.flush { padding: 0; overflow: hidden; }
-.oa-card.accent { border-left: 3px solid var(--gold-500); }
+.oa-card.accent { border-left: 3px solid var(--accent-500); }
 
 .oa-card-head {
   display: flex;
@@ -44,7 +44,7 @@
   color: var(--ink-600);
   margin-bottom: 14px;
 }
-.oa-card-title i { color: var(--gold-600); font-size: .82rem; }
+.oa-card-title i { color: var(--accent-600); font-size: .82rem; }
 
 /* ══ MASTHEAD — the dark hero block ══════════════════════════ */
 
@@ -76,7 +76,7 @@
   font-weight: 700;
   letter-spacing: .16em;
   text-transform: uppercase;
-  color: var(--gold-400);
+  color: var(--accent-400);
   margin-bottom: 4px;
 }
 .oa-masthead .who {
@@ -106,7 +106,7 @@
   border-radius: 999px;
   letter-spacing: .02em;
 }
-.oa-pill i { font-size: .68rem; color: var(--gold-400); }
+.oa-pill i { font-size: .68rem; color: var(--accent-400); }
 .oa-pill.ok   { background: rgba(21, 127, 82, .22);  border-color: rgba(21, 127, 82, .4); }
 .oa-pill.warn { background: rgba(194, 121, 11, .22); border-color: rgba(194, 121, 11, .4); }
 .oa-pill.bad  { background: rgba(183, 48, 42, .22);  border-color: rgba(183, 48, 42, .42); }
@@ -138,7 +138,7 @@
   stroke-linecap: round;
   transition: stroke-dashoffset .8s cubic-bezier(.22, .8, .3, 1);
 }
-.oa-arc .marker { fill: var(--gold-400); stroke: var(--ink-800); stroke-width: 3; transition: all .8s cubic-bezier(.22, .8, .3, 1); }
+.oa-arc .marker { fill: var(--accent-400); stroke: var(--ink-800); stroke-width: 3; transition: all .8s cubic-bezier(.22, .8, .3, 1); }
 .oa-arc .tickmark { stroke: rgba(255, 255, 255, .28); stroke-width: 2; stroke-linecap: round; }
 
 .oa-arc-centre {
@@ -155,7 +155,7 @@
   color: #fff;
   line-height: 1;
 }
-.oa-arc-centre .val small { font-size: .9rem; font-weight: 500; color: var(--gold-400); }
+.oa-arc-centre .val small { font-size: .9rem; font-weight: 500; color: var(--accent-400); }
 .oa-arc-centre .cap {
   font-size: .6rem;
   font-weight: 700;
@@ -211,7 +211,7 @@
 .oa-meter-fill {
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--gold-600), var(--gold-500));
+  background: linear-gradient(90deg, var(--accent-600), var(--accent-500));
   transition: width .6s cubic-bezier(.22, .8, .3, 1);
 }
 .oa-meter-fill.ok  { background: linear-gradient(90deg, #0F6642, var(--ok)); }
@@ -276,8 +276,8 @@
 .oa-btn-primary { background: var(--ink-800); color: var(--on-ink); box-shadow: var(--sh-2); }
 .oa-btn-primary:hover:not(:disabled) { background: var(--ink-700); }
 
-.oa-btn-gold { background: var(--gold-500); color: var(--ink-800); box-shadow: 0 4px 14px rgba(238, 189, 27, .34); }
-.oa-btn-gold:hover:not(:disabled) { background: var(--gold-400); }
+.oa-btn-gold { background: var(--accent-500); color: var(--ink-800); box-shadow: 0 4px 14px rgba(238, 189, 27, .34); }
+.oa-btn-gold:hover:not(:disabled) { background: var(--accent-400); }
 
 .oa-btn-ok   { background: var(--ok);   color: #fff; }
 .oa-btn-bad  { background: var(--bad);  color: #fff; }
@@ -311,7 +311,7 @@
   text-align: center;
   transition: transform .14s, border-color .14s, box-shadow .14s;
 }
-.oa-tile:hover { border-color: var(--gold-500); box-shadow: var(--sh-2); transform: translateY(-2px); }
+.oa-tile:hover { border-color: var(--accent-500); box-shadow: var(--sh-2); transform: translateY(-2px); }
 .oa-tile i {
   font-size: 1.1rem;
   color: var(--ink-600);
@@ -371,21 +371,21 @@
   border-radius: var(--r);
   padding: 11px 12px;
 }
-.oa-mate.self { background: var(--gold-050); border-color: var(--gold-400); }
+.oa-mate.self { background: var(--accent-050); border-color: var(--accent-400); }
 .oa-mate .av {
   width: 34px; height: 34px;
   border-radius: 10px;
   background: var(--ink-800);
-  color: var(--gold-400);
+  color: var(--accent-400);
   font-weight: 800;
   font-size: .82rem;
   display: flex; align-items: center; justify-content: center;
   flex: none;
 }
-.oa-mate.self .av { background: var(--gold-500); color: var(--ink-800); }
+.oa-mate.self .av { background: var(--accent-500); color: var(--ink-800); }
 .oa-mate .bd { flex: 1; min-width: 0; }
 .oa-mate .nm { font-size: .82rem; font-weight: 800; color: var(--t1); }
-.oa-mate .nm .you { font-size: .62rem; color: var(--gold-600); font-weight: 700; margin-left: 4px; }
+.oa-mate .nm .you { font-size: .62rem; color: var(--accent-600); font-weight: 700; margin-left: 4px; }
 .oa-mate .mt {
   font-size: .66rem;
   color: var(--t2);
@@ -402,7 +402,7 @@
   margin-top: 5px;
   line-height: 1.4;
 }
-.oa-mate .loc i { color: var(--gold-600); font-size: .64rem; margin-top: 3px; flex: none; }
+.oa-mate .loc i { color: var(--accent-600); font-size: .64rem; margin-top: 3px; flex: none; }
 .oa-mate .badge {
   font-size: .58rem;
   font-weight: 800;
@@ -430,7 +430,7 @@
   border: 1px solid var(--line);
   border-radius: var(--r);
   padding: 15px 13px;
-  border-top: 3px solid var(--gold-500);
+  border-top: 3px solid var(--accent-500);
 }
 .oa-stat .v {
   font-family: var(--mono);
@@ -490,7 +490,7 @@
   font-family: var(--mono);
   font-size: .88rem;
   font-weight: 700;
-  color: var(--gold-600);
+  color: var(--accent-600);
   flex: none;
 }
 
@@ -521,7 +521,7 @@
 .oa-tag.warn { background: var(--warn-bg); color: var(--warn); }
 .oa-tag.bad  { background: var(--bad-bg);  color: var(--bad); }
 .oa-tag.info { background: var(--info-bg); color: var(--info); }
-.oa-tag.gold { background: var(--gold-100); color: var(--gold-600); }
+.oa-tag.gold { background: var(--accent-100); color: var(--accent-600); }
 
 /* ══ FORMS ═══════════════════════════════════════════════════ */
 
@@ -701,13 +701,13 @@
   pointer-events: none;
   transition: opacity .22s, transform .22s;
   z-index: 400;
-  border-left: 3px solid var(--gold-500);
+  border-left: 3px solid var(--accent-500);
 }
 .oa-toast.show { opacity: 1; transform: translate(-50%, 0); }
 .oa-toast.ok   { border-left-color: var(--ok); }
 .oa-toast.err  { border-left-color: var(--bad); }
 .oa-toast.warn { border-left-color: var(--warn); }
-.oa-toast i { color: var(--gold-400); }
+.oa-toast i { color: var(--accent-400); }
 
 /* ══ CALENDAR ════════════════════════════════════════════════ */
 
@@ -750,7 +750,7 @@
 .oa-cal-day.other { color: var(--t3); opacity: .4; }
 .oa-cal-day.today { box-shadow: inset 0 0 0 2px var(--ink-800); font-weight: 800; }
 .oa-cal-day.present { background: var(--ok-bg); color: var(--ok); font-weight: 800; }
-.oa-cal-day.holiday { background: var(--gold-500); color: var(--ink-800); font-weight: 800; }
+.oa-cal-day.holiday { background: var(--accent-500); color: var(--ink-800); font-weight: 800; }
 .oa-cal-day.leave { background: var(--warn-bg); color: var(--warn); font-weight: 800; }
 .oa-cal-dot {
   position: absolute;
@@ -776,7 +776,7 @@
 .oa-holiday {
   background: var(--card);
   border: 1px solid var(--line);
-  border-left: 3px solid var(--gold-500);
+  border-left: 3px solid var(--accent-500);
   border-radius: var(--r-sm);
   padding: 10px 13px;
   margin-bottom: 7px;
@@ -819,7 +819,7 @@
   position: absolute;
   left: 0; right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, var(--gold-400), transparent);
+  background: linear-gradient(90deg, transparent, var(--accent-400), transparent);
   animation: oaScan 2.2s ease-in-out infinite;
 }
 @keyframes oaScan { 0%, 100% { top: 8%; } 50% { top: 90%; } }
@@ -844,7 +844,7 @@
   display: flex; align-items: center; justify-content: center;
   transition: background .2s, color .2s;
 }
-.oa-dot.active { background: var(--gold-500); color: var(--ink-800); }
+.oa-dot.active { background: var(--accent-500); color: var(--ink-800); }
 .oa-dot.done   { background: var(--ok); color: #fff; }
 .oa-dot-label { text-align: center; font-size: .68rem; color: var(--t2); margin-bottom: 10px; padding: 0 18px; }
 
@@ -865,7 +865,7 @@
   color: var(--t2);
   line-height: 1.45;
 }
-.oa-note i { color: var(--gold-600); margin-top: 2px; flex: none; }
+.oa-note i { color: var(--accent-600); margin-top: 2px; flex: none; }
 
 .oa-banner-ok {
   display: none;

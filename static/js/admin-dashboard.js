@@ -157,9 +157,9 @@
                     <td>${l.date}</td>
                     <td>${l.shift_name}</td>
                     <td>${l.login_time}</td>
-                    <td>${l.logout_time || '<span style="color:#34c759;">Active</span>'}</td>
+                    <td>${l.logout_time || '<span style="color:#34C759;">Active</span>'}</td>
                     <td>${l.hours} hrs</td>
-                    <td style="font-size:0.8rem;color:#86868b;">${l.device_info?.device_name || '-'}</td>
+                    <td style="font-size:0.8rem;color:#86888B;">${l.device_info?.device_name || '-'}</td>
                 </tr>`;
             });
             document.getElementById('recentActivity').innerHTML = html || '<tr><td colspan="7" style="text-align:center;">No activity today</td></tr>';
@@ -288,7 +288,7 @@
         if (date) url += `&date=${date}`;
         if (shift) url += `&shift=${shift}`;
 
-        document.getElementById('faceLogsGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:#86868b;"><i class="fas fa-spinner fa-spin" style="font-size:2rem;"></i><br>Loading...</div>';
+        document.getElementById('faceLogsGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:#86888B;"><i class="fas fa-spinner fa-spin" style="font-size:2rem;"></i><br>Loading...</div>';
 
         try {
             const res = await fetch(url);
@@ -296,7 +296,7 @@
             document.getElementById('faceTotalBadge').textContent = `${data.total} Total Logs`;
 
             if (!data.logs || data.logs.length === 0) {
-                document.getElementById('faceLogsGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:#86868b;"><i class="fas fa-camera-slash" style="font-size:3rem;margin-bottom:16px;display:block;"></i>No face logs found</div>';
+                document.getElementById('faceLogsGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:#86888B;"><i class="fas fa-camera-slash" style="font-size:3rem;margin-bottom:16px;display:block;"></i>No face logs found</div>';
                 document.getElementById('facePagination').innerHTML = '';
                 return;
             }
@@ -314,12 +314,12 @@
                     <div class="face-log-body">
                         <div class="face-log-username">${log.username}</div>
                         <div class="face-log-time">${log.timestamp_ist || 'N/A'}</div>
-                        <div class="face-log-time" style="color: #0071e3; font-weight: bold; margin-top: 2px;">${log.shift_name || 'Normal Login'}</div>
+                        <div class="face-log-time" style="color: #C9662F; font-weight: bold; margin-top: 2px;">${log.shift_name || 'Normal Login'}</div>
                         <div class="device-info-grid">
                             <span class="di-label">Device</span><span class="di-value">${di.device_name || 'Unknown'}</span>
                             <span class="di-label">Browser</span><span class="di-value">${di.browser || 'Unknown'}</span>
                             <span class="di-label">IP</span><span class="di-value">${log.ip_address || 'N/A'}</span>
-                            <span class="di-label">IMEI</span><span class="di-value" style="color:${di.imei && di.imei !== 'Not available (browser)' ? '#0071e3' : '#86868b'};">${di.imei || 'N/A'}</span>
+                            <span class="di-label">IMEI</span><span class="di-value" style="color:${di.imei && di.imei !== 'Not available (browser)' ? '#C9662F' : '#86888B'};">${di.imei || 'N/A'}</span>
                             <span class="di-label">Screen</span><span class="di-value">${di.screen || 'N/A'}</span>
                             <span class="di-label">Distance</span><span class="di-value">${log.match_distance ?? 'N/A'}</span>
                         </div>
@@ -346,7 +346,7 @@
             document.getElementById('facePagination').innerHTML = pag;
 
         } catch (err) {
-            document.getElementById('faceLogsGrid').innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px;color:#ff3b30;">Error loading face logs: ${err.message}</div>`;
+            document.getElementById('faceLogsGrid').innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px;color:#FF3B30;">Error loading face logs: ${err.message}</div>`;
         }
     }
 
@@ -361,7 +361,7 @@
             document.getElementById('fullFaceTitle').textContent = `${data.username} – ${data.timestamp_ist}`;
             document.getElementById('fullFaceContent').innerHTML = `
                 <div style="position:relative;border-radius:16px;overflow:hidden;background:#000;margin-bottom:20px;">
-                    ${data.face_image_b64 ? `<img src="data:image/jpeg;base64,${data.face_image_b64}" class="full-face-img" alt="Face capture">` : '<div style="height:200px;display:flex;align-items:center;justify-content:center;color:#86868b;font-size:3rem;"><i class="fas fa-user-circle"></i></div>'}
+                    ${data.face_image_b64 ? `<img src="data:image/jpeg;base64,${data.face_image_b64}" class="full-face-img" alt="Face capture">` : '<div style="height:200px;display:flex;align-items:center;justify-content:center;color:#86888B;font-size:3rem;"><i class="fas fa-user-circle"></i></div>'}
                     <div style="position:absolute;top:14px;right:14px;padding:8px 18px;border-radius:30px;font-weight:700;background:${matched?'rgba(52,199,89,0.9)':'rgba(255,59,48,0.9)'};color:white;">
                         ${matched ? '✅ Face Matched' : '❌ Verification Failed'}
                     </div>
@@ -380,17 +380,17 @@
                     <div class="full-device-item"><div class="label">RAM</div><div class="value">${di.device_memory ? di.device_memory + ' GB' : 'N/A'}</div></div>
                     <div class="full-device-item"><div class="label">CPU Cores</div><div class="value">${di.hardware_concurrency || 'N/A'}</div></div>
                 </div>
-                <div style="margin-top:20px;padding:16px;background:#f5f5f7;border-radius:12px;font-size:0.85rem;color:#86868b;">
-                    <i class="fas fa-info-circle" style="color:#0071e3;"></i>
+                <div style="margin-top:20px;padding:16px;background:#F5F6F7;border-radius:12px;font-size:0.85rem;color:#86888B;">
+                    <i class="fas fa-info-circle" style="color:#C9662F;"></i>
                     <strong>User Agent:</strong> ${di.user_agent || 'N/A'}
                 </div>
                 ${data.lat && data.lng ? `
-                <div style="margin-top:16px;background:#f5f5f7;border-radius:14px;padding:16px;">
+                <div style="margin-top:16px;background:#F5F6F7;border-radius:14px;padding:16px;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                        <strong><i class="fas fa-map-marked-alt" style="color:#0071e3;"></i> Verification Location & Google Map</strong>
-                        <a href="https://www.google.com/maps/search/?api=1&query=${data.lat},${data.lng}" target="_blank" style="font-size:0.8rem;color:#0071e3;font-weight:bold;text-decoration:none;">Open in Google Maps ➔</a>
+                        <strong><i class="fas fa-map-marked-alt" style="color:#C9662F;"></i> Verification Location & Google Map</strong>
+                        <a href="https://www.google.com/maps/search/?api=1&query=${data.lat},${data.lng}" target="_blank" style="font-size:0.8rem;color:#C9662F;font-weight:bold;text-decoration:none;">Open in Google Maps ➔</a>
                     </div>
-                    <div style="border-radius:10px;overflow:hidden;border:1px solid #e5e5e7;">
+                    <div style="border-radius:10px;overflow:hidden;border:1px solid #E5E6E7;">
                         <iframe src="https://maps.google.com/maps?q=${data.lat},${data.lng}&z=16&output=embed" width="100%" height="160" style="border:0;display:block;" loading="lazy"></iframe>
                     </div>
                 </div>` : ''}
@@ -399,7 +399,7 @@
                     <button class="btn btn-ghost" onclick="closeFaceImageModal()">Close</button>
                 </div>`;
         } catch (err) {
-            document.getElementById('fullFaceContent').innerHTML = `<div style="text-align:center;padding:40px;color:#ff3b30;">Error: ${err.message}</div>`;
+            document.getElementById('fullFaceContent').innerHTML = `<div style="text-align:center;padding:40px;color:#FF3B30;">Error: ${err.message}</div>`;
         }
     }
 
@@ -454,27 +454,27 @@
             if (data.shift_usage) {
                 shiftHtml = '<h4 style="margin:20px 0 10px;">Shift Usage</h4>';
                 Object.entries(data.shift_usage).forEach(([shift, stats]) => {
-                    shiftHtml += `<div style="background:#f5f5f7;padding:16px;border-radius:12px;margin-bottom:12px;"><div style="display:flex;justify-content:space-between;"><strong>${stats.name}</strong><span>${stats.count} sessions</span></div><div>Total Hours: ${stats.total_hours.toFixed(1)} hrs</div></div>`;
+                    shiftHtml += `<div style="background:#F5F6F7;padding:16px;border-radius:12px;margin-bottom:12px;"><div style="display:flex;justify-content:space-between;"><strong>${stats.name}</strong><span>${stats.count} sessions</span></div><div>Total Hours: ${stats.total_hours.toFixed(1)} hrs</div></div>`;
                 });
             }
 
             // Face status section
             let faceHtml = `
-                <div style="background:#f5f5f7;padding:16px;border-radius:12px;margin-top:16px;">
-                    <div style="font-size:0.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#86868b;margin-bottom:12px;">
-                        <i class="fas fa-camera" style="color:#0071e3;"></i> Face ID Status
+                <div style="background:#F5F6F7;padding:16px;border-radius:12px;margin-top:16px;">
+                    <div style="font-size:0.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#86888B;margin-bottom:12px;">
+                        <i class="fas fa-camera" style="color:#C9662F;"></i> Face ID Status
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                         <div>
-                            <div style="font-size:0.75rem;color:#86868b;">Registration</div>
+                            <div style="font-size:0.75rem;color:#86888B;">Registration</div>
                             <div style="font-weight:700;">${data.face_registered ? '✅ Registered (' + (data.face_photo_count || 0) + ' photos)' : '❌ Not Registered'}</div>
                         </div>
                         <div>
-                            <div style="font-size:0.75rem;color:#86868b;">Face ID Required</div>
+                            <div style="font-size:0.75rem;color:#86888B;">Face ID Required</div>
                             <div style="font-weight:700;">${data.face_required ? '🔒 Yes — enforced' : '🔓 No — optional'}</div>
                         </div>
                         <div>
-                            <div style="font-size:0.75rem;color:#86868b;">Registration Allowed</div>
+                            <div style="font-size:0.75rem;color:#86888B;">Registration Allowed</div>
                             <div style="font-weight:700;">${data.face_registration_enabled ? '✅ Admin enabled' : '❌ Admin blocked'}</div>
                         </div>
                     </div>
@@ -487,7 +487,7 @@
                     <div class="stat-card"><div class="value">${data.attendance_this_month||0}</div><div class="label">This Month</div></div>
                     <div class="stat-card"><div class="value">${data.leaves_this_month||0}</div><div class="label">Leaves</div></div>
                 </div>
-                <div style="margin:20px 0;background:#f5f5f7;padding:16px;border-radius:12px;">
+                <div style="margin:20px 0;background:#F5F6F7;padding:16px;border-radius:12px;">
                     <p><strong>Email:</strong> ${data.email||'N/A'}</p>
                     <p style="margin-top:8px;"><strong>Target:</strong> ${data.work_hours_target} hrs/day (${shiftTarget} hrs per shift)</p>
                 </div>
@@ -495,7 +495,7 @@
                 <div style="margin-top:20px;">
                     <label><strong>Update Work Hours:</strong></label>
                     <div style="display:flex;gap:10px;margin-top:10px;">
-                        <input type="number" id="newWorkHours" value="${data.work_hours_target}" step="0.5" style="flex:1;padding:10px;border-radius:8px;border:1px solid #e5e5e7;">
+                        <input type="number" id="newWorkHours" value="${data.work_hours_target}" step="0.5" style="flex:1;padding:10px;border-radius:8px;border:1px solid #E5E6E7;">
                         <button class="btn btn-primary" onclick="updateWorkHours('${userId}')">Update</button>
                     </div>
                 </div>
@@ -551,7 +551,7 @@
             const mapContainer = document.getElementById('adminLocationsMap');
             
             if (!data.locations || !data.locations.length) {
-                html = '<div style="text-align:center;padding:40px;color:#86868b;"><i class="fas fa-map-marker-slash" style="font-size:3rem;margin-bottom:12px;display:block;"></i>No location records for this date</div>';
+                html = '<div style="text-align:center;padding:40px;color:#86888B;"><i class="fas fa-map-marker-slash" style="font-size:3rem;margin-bottom:12px;display:block;"></i>No location records for this date</div>';
                 mapContainer.style.display = 'none';
             } else {
                 mapContainer.style.display = 'block';
@@ -564,7 +564,7 @@
                     adminMap = L.map('adminLocationsMap').setView([officeLat, officeLng], 14);
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                         maxZoom: 19,
-                        attribution: '© OpenStreetMap | JAIN Attendance'
+                        attribution: '© OpenStreetMap | OJIX Attendance'
                     }).addTo(adminMap);
                 } else {
                     adminMap.setView([officeLat, officeLng], 14);
@@ -572,13 +572,13 @@
                     mapMarkers = [];
                 }
 
-                // Add JAIN Head Office Campus boundary circle (500m radius)
+                // Add OJIX Head Office Campus boundary circle (500m radius)
                 const campusCircle = L.circle([officeLat, officeLng], {
-                    color: '#0071e3',
-                    fillColor: '#0071e3',
+                    color: '#C9662F',
+                    fillColor: '#C9662F',
                     fillOpacity: 0.1,
                     radius: 500
-                }).addTo(adminMap).bindPopup('<strong>JAIN University Campus</strong><br>500m allowed radius zone');
+                }).addTo(adminMap).bindPopup('<strong>OJIX University Campus</strong><br>500m allowed radius zone');
                 mapMarkers.push(campusCircle);
 
                 const bounds = L.latLngBounds([[officeLat, officeLng]]);
@@ -592,11 +592,11 @@
                         const marker = L.marker([l.login_lat, l.login_lng]).addTo(adminMap)
                             .bindPopup(`
                                 <div style="font-family:sans-serif;padding:4px;">
-                                    <strong style="color:#0071e3;font-size:0.95rem;">${l.username}</strong><br>
+                                    <strong style="color:#C9662F;font-size:0.95rem;">${l.username}</strong><br>
                                     <span style="font-size:0.8rem;color:#555;">Shift: ${l.shift_name}</span><br>
                                     <span style="font-size:0.8rem;color:#555;">Login: ${l.login_time}</span><br>
                                     <div style="font-size:0.75rem;margin-top:4px;color:#333;">${l.login_address}</div>
-                                    <a href="https://www.google.com/maps/search/?api=1&query=${l.login_lat},${l.login_lng}" target="_blank" style="font-size:0.75rem;color:#0071e3;display:inline-block;margin-top:6px;font-weight:bold;text-decoration:none;">View in Google Maps ➔</a>
+                                    <a href="https://www.google.com/maps/search/?api=1&query=${l.login_lat},${l.login_lng}" target="_blank" style="font-size:0.75rem;color:#C9662F;display:inline-block;margin-top:6px;font-weight:bold;text-decoration:none;">View in Google Maps ➔</a>
                                 </div>
                             `);
                         mapMarkers.push(marker);
@@ -606,43 +606,43 @@
                     const googleMapsUrl = hasCoords ? `https://www.google.com/maps/search/?api=1&query=${l.login_lat},${l.login_lng}` : '#';
                     const googleEmbedUrl = hasCoords ? `https://www.openstreetmap.org/export/embed.html?bbox=${l.login_lng-0.004},${l.login_lat-0.004},${l.login_lng+0.004},${l.login_lat+0.004}&layer=mapnik&marker=${l.login_lat},${l.login_lng}` : null;
 
-                    html += `<div style="background:#ffffff;border:1px solid rgba(0,0,0,0.06);box-shadow:0 4px 15px rgba(0,0,0,0.03);border-radius:16px;padding:20px;margin-bottom:18px;">
+                    html += `<div style="background:#FFFFFF;border:1px solid rgba(0,0,0,0.06);box-shadow:0 4px 15px rgba(0,0,0,0.03);border-radius:16px;padding:20px;margin-bottom:18px;">
                         <div style="display:flex;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;align-items:center;">
                             <div style="display:flex;align-items:center;gap:10px;">
                                 <strong style="font-size:1.05rem;">${l.username}</strong>
-                                <span class="badge" style="background:${l.at_office?'#34c759':'#ff9500'};color:white;">${l.at_office?'🏛️ On Campus':'📡 Remote'}</span>
+                                <span class="badge" style="background:${l.at_office?'#34C759':'#CF6930'};color:white;">${l.at_office?'🏛️ On Campus':'📡 Remote'}</span>
                             </div>
                             <div style="display:flex;gap:8px;align-items:center;">
-                                <span class="badge" style="background:${l.shift_type==='shift1'?'#0071e3':l.shift_type==='shift2'?'#ff9500':'#86868b'};color:white;">${l.shift_name}</span>
-                                ${faceRequired ? '<span class="badge" style="background:rgba(0,113,227,0.15);color:#0071e3;border:1px solid rgba(0,113,227,0.3);">🔒 Face ID</span>' : ''}
+                                <span class="badge" style="background:${l.shift_type==='shift1'?'#C9662F':l.shift_type==='shift2'?'#CF6930':'#86888B'};color:white;">${l.shift_name}</span>
+                                ${faceRequired ? '<span class="badge" style="background:rgba(0,113,227,0.15);color:#C9662F;border:1px solid rgba(0,113,227,0.3);">🔒 Face ID</span>' : ''}
                                 ${hasCoords ? `<a href="${googleMapsUrl}" target="_blank" class="btn btn-sm btn-primary" style="padding:4px 10px;font-size:0.75rem;text-decoration:none;"><i class="fas fa-map-marked-alt"></i> Open Google Maps</a>` : ''}
                             </div>
                         </div>
 
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px;">
                             <div>
-                                <div style="font-size:0.78rem;color:#86868b;font-weight:700;">LOGIN LOCATION</div>
+                                <div style="font-size:0.78rem;color:#86888B;font-weight:700;">LOGIN LOCATION</div>
                                 <div style="font-weight:600;margin-top:2px;">${l.login_time}</div>
-                                <div style="font-size:0.82rem;margin-top:4px;color:#444;"><i class="fas fa-location-dot" style="color:#0071e3;"></i> ${l.login_address}${hasCoords ? ` <span style="font-size:0.75rem;color:#888;">(${l.login_lat.toFixed(6)}, ${l.login_lng.toFixed(6)})</span>` : ''}</div>
+                                <div style="font-size:0.82rem;margin-top:4px;color:#444;"><i class="fas fa-location-dot" style="color:#C9662F;"></i> ${l.login_address}${hasCoords ? ` <span style="font-size:0.75rem;color:#888;">(${l.login_lat.toFixed(6)}, ${l.login_lng.toFixed(6)})</span>` : ''}</div>
                             </div>
                             ${l.logout_time ? `<div>
-                                <div style="font-size:0.78rem;color:#86868b;font-weight:700;">LOGOUT LOCATION</div>
+                                <div style="font-size:0.78rem;color:#86888B;font-weight:700;">LOGOUT LOCATION</div>
                                 <div style="font-weight:600;margin-top:2px;">${l.logout_time}</div>
-                                <div style="font-size:0.82rem;margin-top:4px;color:#444;"><i class="fas fa-location-dot" style="color:#ff3b30;"></i> ${l.logout_address||'N/A'}${l.logout_lat && l.logout_lng ? ` <span style="font-size:0.75rem;color:#888;">(${l.logout_lat.toFixed(6)}, ${l.logout_lng.toFixed(6)})</span>` : ''}</div>
+                                <div style="font-size:0.82rem;margin-top:4px;color:#444;"><i class="fas fa-location-dot" style="color:#FF3B30;"></i> ${l.logout_address||'N/A'}${l.logout_lat && l.logout_lng ? ` <span style="font-size:0.75rem;color:#888;">(${l.logout_lat.toFixed(6)}, ${l.logout_lng.toFixed(6)})</span>` : ''}</div>
                             </div>` : ''}
                         </div>
 
                         ${googleEmbedUrl ? `
-                        <div style="margin-top:12px;border-radius:12px;overflow:hidden;border:1px solid #e5e5e7;">
+                        <div style="margin-top:12px;border-radius:12px;overflow:hidden;border:1px solid #E5E6E7;">
                             <iframe src="${googleEmbedUrl}" width="100%" height="180" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
                         </div>` : ''}
 
-                        <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:0.82rem;border-top:1px solid #f0f0f2;padding-top:12px;margin-top:12px;color:#666;">
-                            <span><i class="fas fa-mobile-alt" style="color:#0071e3;"></i> ${di.device_name||'Unknown'}</span>
+                        <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:0.82rem;border-top:1px solid #F0F1F2;padding-top:12px;margin-top:12px;color:#666;">
+                            <span><i class="fas fa-mobile-alt" style="color:#C9662F;"></i> ${di.device_name||'Unknown'}</span>
                             <span><i class="fas fa-globe"></i> ${di.browser||'-'}</span>
                             <span><i class="fas fa-network-wired"></i> ${di.ip_address||'-'}</span>
                             <span><i class="fas fa-barcode"></i> IMEI: ${di.imei||'N/A'}</span>
-                            <span style="margin-left:auto;font-weight:700;color:#0071e3;">${l.hours} hrs</span>
+                            <span style="margin-left:auto;font-weight:700;color:#C9662F;">${l.hours} hrs</span>
                         </div>
                     </div>`;
                 });
@@ -666,7 +666,7 @@
         off:      { label: 'Off / weekend',   icon: 'fa-mug-hot',             color: 'var(--t3)'   },
     };
     // Concrete colours for the donut/legend (conic-gradient can't read CSS vars reliably).
-    const AN_HEX = { complete:'#2E7D46', active:'#0071e3', early:'#C77700', absent:'#C0362C', on_leave:'#8F98A6', off:'#B8BEC7' };
+    const AN_HEX = { complete:'#2E7D46', active:'#C9662F', early:'#A15226', absent:'#C0362C', on_leave:'#8F99A6', off:'#B8BEC7' };
 
     async function loadAnalysisOverview() {
         const dateEl = document.getElementById('analysisDate');
@@ -746,7 +746,7 @@
         const timeline = (cat === 'complete' || cat === 'early' || cat === 'active')
             ? `<div class="an-u-time">${p.login_time || '—'} → ${p.logout_time || (cat === 'active' ? 'active' : '—')} · ${p.hours}h${cat === 'early' ? ` (−${p.shortfall}h)` : ''}</div>`
             : '';
-        const barColor = p.progress_pct >= 80 ? '#2E7D46' : p.progress_pct >= 50 ? '#C77700' : '#C0362C';
+        const barColor = p.progress_pct >= 80 ? '#2E7D46' : p.progress_pct >= 50 ? '#A15226' : '#C0362C';
         return `<div class="an-u">
             <div class="an-u-top">
               <span class="an-u-name">${p.username}</span>
@@ -906,10 +906,10 @@
         const tiles = [
             { n: s.present ?? 0,  l: 'Days worked', c: '#1E7D46' },
             { n: s.absent ?? 0,   l: 'Absent',      c: '#C0362C' },
-            { n: s.leave ?? 0,    l: 'On leave',    c: '#8F98A6' },
+            { n: s.leave ?? 0,    l: 'On leave',    c: '#8F99A6' },
             { n: (s.total_hours ?? 0) + 'h', l: 'Total hours', c: 'var(--ink-800)' },
             { n: (s.avg_hours ?? 0) + 'h',   l: 'Avg / day',   c: 'var(--ink-800)' },
-            { n: (s.attendance_rate ?? 0) + '%', l: 'Attendance', c: '#B0740A' },
+            { n: (s.attendance_rate ?? 0) + '%', l: 'Attendance', c: '#974C23' },
         ];
         document.getElementById('calSummary').innerHTML = tiles.map(t =>
             `<div class="cal-stat"><div class="n" style="color:${t.c}">${t.n}</div><div class="l">${t.l}</div></div>`

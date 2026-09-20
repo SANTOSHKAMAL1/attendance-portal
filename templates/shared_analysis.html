@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>{% if not_found %}Link unavailable{% else %}{{ title }}{% endif %} · Office of Academics</title>
-<meta name="theme-color" content="#0A1324">
+<title>{% if not_found %}Link unavailable{% else %}{{ title }}{% endif %} · OJIX</title>
+<meta name="theme-color" content="#0F1C2E">
 <meta name="robots" content="noindex, nofollow">
-<link rel="icon" type="image/png" href="{{ url_for('static', filename='images/applogo.png') }}">
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='images/ojix-icon-512.png') }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/oa-core.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/oa-components.css') }}">
@@ -22,22 +22,22 @@
     display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
   }
   .sa-masthead img { width: 46px; height: 46px; border-radius: 12px; }
-  .sa-masthead .org { font-size: .62rem; font-weight: 800; letter-spacing: .16em; color: var(--gold-400); text-transform: uppercase; }
-  .sa-masthead h1 { font-family: "Playfair Display", serif; font-size: 1.5rem; margin: 2px 0 0; color: #fff; }
+  .sa-masthead .org { font-size: .62rem; font-weight: 800; letter-spacing: .16em; color: var(--accent-400); text-transform: uppercase; }
+  .sa-masthead h1 { font-family: var(--display); font-size: 1.5rem; margin: 2px 0 0; color: #fff; }
   .sa-masthead .spacer { flex: 1; }
   .sa-dl {
-    background: var(--gold-500); color: var(--ink-800); font-weight: 800;
+    background: var(--accent-500); color: var(--ink-800); font-weight: 800;
     border: none; border-radius: var(--r-sm); padding: 12px 18px;
     font-size: .82rem; display: inline-flex; align-items: center; gap: 8px;
   }
-  .sa-dl:hover { background: var(--gold-400); }
+  .sa-dl:hover { background: var(--accent-400); }
   .sa-meta { display: flex; flex-wrap: wrap; gap: 22px; margin-bottom: 20px; }
   .sa-stat .n { font-family: var(--mono); font-size: 1.5rem; font-weight: 700; color: var(--ink-800); }
   .sa-stat .l { font-size: .62rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--t3); }
   .sa-day { margin-bottom: 26px; }
   .sa-day-head {
     display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px;
-    padding-bottom: 8px; border-bottom: 2px solid var(--gold-500);
+    padding-bottom: 8px; border-bottom: 2px solid var(--accent-500);
   }
   .sa-day-head h2 { font-family: var(--mono); font-size: 1.05rem; color: var(--ink-800); margin: 0; }
   .sa-day-head .c { font-size: .72rem; color: var(--t2); }
@@ -49,12 +49,12 @@
     white-space: nowrap;
   }
   table.sa-tbl td { padding: 10px 12px; border-top: 1px solid var(--line); color: var(--t1); vertical-align: top; }
-  table.sa-tbl tr:nth-child(even) td { background: #FBFAF7; }
+  table.sa-tbl tr:nth-child(even) td { background: #FBF8F7; }
   .sa-name { font-weight: 700; }
   .sa-mono { font-family: var(--mono); font-size: .76rem; }
   .sa-badge { display: inline-block; font-size: .62rem; font-weight: 800; padding: 2px 8px; border-radius: 999px; }
-  .sa-badge.office { background: var(--gold-100); color: var(--gold-600); }
-  .sa-badge.remote { background: #FDE7E7; color: #b42318; }
+  .sa-badge.office { background: var(--accent-100); color: var(--accent-600); }
+  .sa-badge.remote { background: #FDE7E7; color: #B42318; }
   .sa-addr { color: var(--t2); font-size: .74rem; }
   .sa-addr a { color: var(--ink-600); font-weight: 600; white-space: nowrap; }
   .sa-tabs { display: flex; gap: 6px; margin-bottom: 18px; border-bottom: 1px solid var(--line); }
@@ -63,7 +63,7 @@
     padding: 10px 15px; font-size: .8rem; font-weight: 700; color: var(--t2);
     border-bottom: 2px solid transparent; margin-bottom: -1px; cursor: pointer; background: none;
   }
-  .sa-tab.on { color: var(--ink-800); border-bottom-color: var(--gold-500); }
+  .sa-tab.on { color: var(--ink-800); border-bottom-color: var(--accent-500); }
   .sa-person {
     background: #fff; border: 1px solid var(--line); border-radius: var(--r-lg);
     margin-bottom: 10px; overflow: hidden;
@@ -96,8 +96,8 @@
 <div class="sa-wrap">
 {% if not_found %}
   <div class="sa-masthead">
-    <img src="{{ url_for('static', filename='images/applogo.png') }}" alt="">
-    <div><div class="org">Office of Academics</div><h1>Attendance Portal</h1></div>
+    <img src="{{ url_for('static', filename='images/ojix-icon-512.png') }}" alt="">
+    <div><div class="org">OJIX</div><h1>Attendance Portal</h1></div>
   </div>
   <div class="sa-empty">
     <i class="fas fa-link-slash"></i>
@@ -106,9 +106,9 @@
   </div>
 {% else %}
   <div class="sa-masthead">
-    <img src="{{ url_for('static', filename='images/applogo.png') }}" alt="">
+    <img src="{{ url_for('static', filename='images/ojix-icon-512.png') }}" alt="">
     <div>
-      <div class="org">Office of Academics · Sign-in analysis</div>
+      <div class="org">OJIX · Sign-in analysis</div>
       <h1>{{ title }}</h1>
     </div>
     <span class="spacer"></span>
@@ -232,7 +232,7 @@
   </div><!-- /sa-view-day -->
 
   <div class="sa-foot">
-    Shared from the JAIN Attendance Portal{% if created_by %} by {{ created_by }}{% endif %}.
+    Shared from the OJIX Attendance Portal{% if created_by %} by {{ created_by }}{% endif %}.
     This is a read-only view — no login required.
   </div>
 {% endif %}

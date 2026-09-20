@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Notifications{% endblock %}
-{% block bartitle %}OFFICE OF ACADEMICS{% endblock %}
+{% block bartitle %}OJIX{% endblock %}
 {% block barsub %}Notifications{% endblock %}
 
 {% block content %}
@@ -24,7 +24,7 @@ async function loadNotifications(){
       return;
     }
     el.innerHTML = items.map(n => `
-      <div class="oa-card" style="border-left:3px solid ${n.read ? 'var(--line-2)' : 'var(--gold-500)'};margin-bottom:9px">
+      <div class="oa-card" style="border-left:3px solid ${n.read ? 'var(--line-2)' : 'var(--accent-500)'};margin-bottom:9px">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:5px">
           <strong style="font-size:.84rem">${n.title || 'Notice'}</strong>
           ${n.read ? '' : '<span class="oa-tag gold">New</span>'}

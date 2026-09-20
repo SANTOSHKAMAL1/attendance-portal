@@ -1,54 +1,69 @@
 /* ══════════════════════════════════════════════════════════════
-   OFFICE OF ACADEMICS · ATTENDANCE
+   OJIX · ATTENDANCE
    oa-core.css — design tokens, reset, shell, typography
-   Palette derived from the JAIN institutional mark:
-     navy #0A1324 · gold #EEBD1B
+
+   Palette from the OJIX brand kit:
+     Deep Navy #0F1C2E · Signal Orange #C9662F
+     Cool Grey #9AA7B4 · White #FFFFFF
+
+   Two deliberate departures from the kit, both for legibility at UI
+   sizes. The kit's figures are for display type; these are 13-15px.
+     · Cool Grey is 2.2:1 on a light background — well under AA — so
+       secondary text uses greys blended toward navy until they pass.
+       Cool Grey is kept where it does pass: on navy (7.0:1).
+     · Signal Orange on navy is 4.4:1, just under AA for normal text.
+       So orange is a fill and rule colour here, and orange *text*
+       uses --accent-600 on light (5.5:1) or --accent-400 on navy
+       (6.1:1).
    ══════════════════════════════════════════════════════════════ */
 
 :root {
-  /* ── Ink (navy family, from the logo mark) ── */
-  --ink-900: #060B16;
-  --ink-850: #08101E;
-  --ink-800: #0A1324;
-  --ink-700: #13203A;
-  --ink-600: #1E3054;
-  --ink-500: #2C446F;
-  --ink-400: #52678F;
+  /* ── Ink (Deep Navy family) ── */
+  --ink-900: #080F19;
+  --ink-850: #0B1421;
+  --ink-800: #0F1C2E;   /* brand Deep Navy */
+  --ink-700: #222E3F;
+  --ink-600: #2C3E55;
+  --ink-500: #57606D;
+  --ink-400: #747B86;
 
-  /* ── Gold (institutional accent) ── */
-  --gold-600: #B8900E;
-  --gold-500: #EEBD1B;
-  --gold-400: #F5D257;
-  --gold-100: #FBF1CE;
-  --gold-050: #FEFAEC;
+  /* ── Accent (Signal Orange) ── */
+  --accent-600: #A8501E;   /* orange text on light, 5.5:1 */
+  --accent-500: #C9662F;   /* brand Signal Orange — fills, rules */
+  --accent-400: #D5885D;   /* orange text on navy, 6.1:1 */
+  --accent-100: #F5E3DA;
+  --accent-050: #FCF6F3;
 
   /* ── Paper & structure ── */
-  --paper:    #F6F4EF;
-  --paper-2:  #EFEBE3;
+  --paper:    #F4F5F7;
+  --paper-2:  #E8EAEE;
   --card:     #FFFFFF;
-  --line:     #E3DED4;
-  --line-2:   #D3CCBE;
+  --line:     #E1E4E9;
+  --line-2:   #D5D9DF;
 
   /* ── Text ── */
-  --t1: #101828;
-  --t2: #5B6472;
-  --t3: #8F98A6;
-  --on-ink:     #F4F1EA;
-  --on-ink-dim: #A9B4C7;
+  --t1: #0F1C2E;   /* 15.7:1 on paper */
+  --t2: #657281;   /*  4.5:1 — AA for body */
+  --t3: #828F9D;   /*  3.0:1 — large/secondary only */
+  --on-ink:     #FFFFFF;
+  --on-ink-dim: #9AA7B4;   /* kit Cool Grey, 7.0:1 on navy */
 
-  /* ── Functional ── */
+  /* ── Functional ──
+     Status colours stay in their own hue families. They carry meaning
+     rather than brand, and recolouring them to orange would collapse
+     "warning" into "brand accent". */
   --ok:    #157F52;
   --ok-bg: #E7F3ED;
-  --warn:    #C2790B;
-  --warn-bg: #FBF0DC;
+  --warn:    #8A6410;
+  --warn-bg: #F6EEDC;
   --bad:    #B7302A;
   --bad-bg: #F8E9E8;
-  --info:    #2B5CA8;
-  --info-bg: #E8EFF9;
+  --info:    #2C3E55;
+  --info-bg: #E7EAEF;
 
   /* ── Type ── */
-  --display: 'Playfair Display', 'Iowan Old Style', Georgia, serif;
-  --body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --display: 'Archivo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --body: 'Archivo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
   /* ── Geometry ── */
@@ -62,10 +77,10 @@
   --botnav: 66px;
   --safe-b: env(safe-area-inset-bottom, 0px);
 
-  --sh-1: 0 1px 2px rgba(10, 19, 36, .05);
-  --sh-2: 0 4px 16px rgba(10, 19, 36, .07);
-  --sh-3: 0 14px 40px rgba(10, 19, 36, .10);
-  --sh-ink: 0 18px 44px rgba(10, 19, 36, .28);
+  --sh-1: 0 1px 2px rgba(15, 28, 46, .05);
+  --sh-2: 0 4px 16px rgba(15, 28, 46, .07);
+  --sh-3: 0 14px 40px rgba(15, 28, 46, .10);
+  --sh-ink: 0 18px 44px rgba(15, 28, 46, .28);
 }
 
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -89,12 +104,12 @@ button { cursor: pointer; background: none; border: none; }
 a { color: var(--ink-600); text-decoration: none; }
 
 :focus-visible {
-  outline: 2px solid var(--gold-500);
+  outline: 2px solid var(--accent-500);
   outline-offset: 2px;
   border-radius: 4px;
 }
 
-::selection { background: var(--gold-100); color: var(--ink-800); }
+::selection { background: var(--accent-100); color: var(--ink-800); }
 
 /* ══ TYPOGRAPHY ══════════════════════════════════════════════ */
 
@@ -144,7 +159,7 @@ a { color: var(--ink-600); text-decoration: none; }
 .oa-rule .tick {
   width: 14px;
   height: 3px;
-  background: var(--gold-500);
+  background: var(--accent-500);
   border-radius: 2px;
 }
 
@@ -203,14 +218,14 @@ a { color: var(--ink-600); text-decoration: none; }
 }
 .oa-navitem i { width: 17px; font-size: .88rem; text-align: center; }
 .oa-navitem:hover { background: rgba(255, 255, 255, .06); color: var(--on-ink); }
-.oa-navitem.on { background: rgba(238, 189, 27, .12); color: var(--gold-400); }
+.oa-navitem.on { background: rgba(238, 189, 27, .12); color: var(--accent-400); }
 .oa-navitem.on::before {
   content: "";
   position: absolute;
   left: -12px; top: 50%;
   transform: translateY(-50%);
   width: 3px; height: 22px;
-  background: var(--gold-500);
+  background: var(--accent-500);
   border-radius: 0 3px 3px 0;
 }
 .oa-navitem.danger { color: #F2A9A4; }
@@ -260,7 +275,7 @@ a { color: var(--ink-600); text-decoration: none; }
   font-size: .74rem;
   font-weight: 500;
   letter-spacing: -.02em;
-  color: var(--gold-400);
+  color: var(--accent-400);
   background: rgba(238, 189, 27, .1);
   padding: 5px 9px;
   border-radius: 7px;
@@ -324,7 +339,7 @@ a { color: var(--ink-600); text-decoration: none; }
 .oa-avatar {
   width: 44px; height: 44px;
   border-radius: 12px;
-  background: var(--gold-500);
+  background: var(--accent-500);
   color: var(--ink-800);
   font-weight: 800;
   font-size: 1.05rem;
@@ -369,7 +384,7 @@ a { color: var(--ink-600); text-decoration: none; }
   position: absolute;
   top: 6px;
   width: 20px; height: 3px;
-  background: var(--gold-500);
+  background: var(--accent-500);
   border-radius: 2px;
 }
 
@@ -406,3 +421,31 @@ a { color: var(--ink-600); text-decoration: none; }
     transition-duration: .001ms !important;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   OJIX WORDMARK
+   From the brand kit: a Signal Orange rule, then OJI with the X in
+   orange, Archivo 800. Built in CSS rather than shipped as a raster
+   so it stays sharp at any size and recolours with the theme.
+   Clear space on all sides equals the rule height, per the kit.
+   ══════════════════════════════════════════════════════════════ */
+.ojix-mark { display: inline-flex; flex-direction: column; gap: .45em; }
+.ojix-mark .ojix-rule {
+  height: .18em; background: var(--accent-500); border-radius: 1px;
+}
+.ojix-mark .ojix-word {
+  font-family: var(--display); font-weight: 800; line-height: .9;
+  letter-spacing: 0; color: var(--t1); white-space: nowrap;
+}
+.ojix-mark .ojix-word x { color: var(--accent-500); font-style: normal; }
+/* Reverse lockup — the kit's "never place the colour version on a
+   mid-tone background" rule means dark panels get white + orange. */
+.ojix-mark.on-ink .ojix-word { color: var(--on-ink); }
+
+.ojix-lockup { display: flex; align-items: center; gap: 12px; }
+.ojix-lockup .ojix-mark { font-size: 26px; }
+.ojix-lockup .ojix-legal {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--t2); line-height: 1.35;
+}
+.ojix-lockup.on-ink .ojix-legal { color: var(--on-ink-dim); }

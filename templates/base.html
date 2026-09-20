@@ -3,19 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>{% block title %}Attendance{% endblock %} · Office of Academics</title>
-<meta name="theme-color" content="#0A1324">
+<title>{% block title %}Attendance{% endblock %} · OJIX</title>
+<meta name="theme-color" content="#0F1C2E">
 
 <!-- ── App logo as favicon (all surfaces) ── -->
-<link rel="icon" type="image/png" href="{{ url_for('static', filename='images/applogo.png') }}">
-<link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='images/applogo.png') }}">
-<link rel="apple-touch-icon" href="{{ url_for('static', filename='images/applogo.png') }}">
-<link rel="mask-icon" href="{{ url_for('static', filename='images/applogo.png') }}" color="#0A1324">
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='images/ojix-icon-512.png') }}">
+<link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='images/ojix-icon-512.png') }}">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='images/ojix-icon-512.png') }}">
+<link rel="mask-icon" href="{{ url_for('static', filename='images/ojix-icon-512.png') }}" color="#0F1C2E">
 <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/oa-core.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/oa-components.css') }}">
@@ -35,10 +35,10 @@
   <!-- ── Left rail (web) ── -->
   <aside class="oa-rail">
     <div class="oa-rail-head">
-      <img src="{{ url_for('static', filename='images/applogo.png') }}" alt="">
+      <div class="ojix-mark"><div class="ojix-rule"></div><div class="ojix-word">OJI<x>X</x></div></div>
       <div>
-        <div class="org">OFFICE OF ACADEMICS</div>
-        <div class="sub">JAIN (Deemed-to-be University)</div>
+        <div class="org">OJIX</div>
+        <div class="sub">Engineering &amp; Technology LLP</div>
       </div>
     </div>
     <nav class="oa-rail-nav">
@@ -57,9 +57,9 @@
 
   <!-- ── Top bar ── -->
   <header class="oa-topbar">
-    <img class="brandmark" src="{{ url_for('static', filename='images/applogo.png') }}" alt="">
+    <img class="brandmark" src="{{ url_for('static', filename='images/ojix-icon-512.png') }}" alt="">
     <div class="titles">
-      <div class="org">{% block bartitle %}OFFICE OF ACADEMICS{% endblock %}</div>
+      <div class="org">{% block bartitle %}OJIX{% endblock %}</div>
       <div class="sub">{% block barsub %}Attendance Portal{% endblock %}</div>
     </div>
     {% block barextra %}{% endblock %}

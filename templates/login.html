@@ -3,18 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Sign in · Office of Academics Attendance</title>
-<meta name="theme-color" content="#0A1324">
-<meta name="description" content="Attendance Portal for the Office of Academics, JAIN (Deemed-to-be University), Head Office, Bengaluru.">
+<title>Sign in · OJIX Attendance</title>
+<meta name="theme-color" content="#0F1C2E">
+<meta name="description" content="Attendance Portal for OJIX Engineering & Technology LLP, Bengaluru.">
 
-<link rel="icon" type="image/png" href="{{ url_for('static', filename='images/applogo.png') }}">
-<link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='images/applogo.png') }}">
-<link rel="apple-touch-icon" href="{{ url_for('static', filename='images/applogo.png') }}">
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='images/ojix-icon-512.png') }}">
+<link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='images/ojix-icon-512.png') }}">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='images/ojix-icon-512.png') }}">
 <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/oa-core.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/oa-components.css') }}">
@@ -65,7 +65,7 @@
     letter-spacing: -.025em;
     max-width: 15ch;
   }
-  .lg-head em { font-style: italic; color: var(--gold-400); }
+  .lg-head em { font-style: italic; color: var(--accent-400); }
   .lg-sub {
     font-size: .86rem;
     color: var(--on-ink-dim);
@@ -94,7 +94,7 @@
     font-size: 1.55rem;
     font-weight: 600;
     letter-spacing: -.04em;
-    color: var(--gold-400);
+    color: var(--accent-400);
     line-height: 1.1;
   }
   .lg-register .datev { font-size: .74rem; color: var(--on-ink-dim); font-family: var(--mono); }
@@ -144,7 +144,7 @@
     font-size: .74rem; color: var(--t2); line-height: 1.5;
   }
   .lg-mark-item i {
-    color: var(--gold-600); font-size: .74rem; margin-top: 3px; flex: none;
+    color: var(--accent-600); font-size: .74rem; margin-top: 3px; flex: none;
     width: 14px; text-align: center;
   }
   .lg-foot {
@@ -172,17 +172,17 @@
   <!-- ══ Institutional panel ══ -->
   <section class="lg-panel">
     <div class="lg-mark">
-      <img src="{{ url_for('static', filename='images/applogo.png') }}" alt="JAIN">
+      <div class="ojix-mark on-ink"><div class="ojix-rule"></div><div class="ojix-word">OJI<x>X</x></div></div>
       <div>
-        <div class="n1">OFFICE OF ACADEMICS</div>
-        <div class="n2">JAIN (Deemed-to-be University)</div>
+        <div class="n1">OJIX</div>
+        <div class="n2">Engineering &amp; Technology LLP</div>
       </div>
     </div>
 
     <h1 class="lg-head">The Attendance Portal, <em>kept honestly.</em></h1>
     <p class="lg-sub">
-      Mark your attendance from the Head Office, see the hours you have put in today,
-      and know who else is on duty — all from one page.
+      Mark your attendance from wherever you are working, see the hours you have put in
+      today, and know who else is on duty — all from one page.
     </p>
 
     <div class="lg-register">
@@ -193,7 +193,7 @@
       </div>
       <div class="site">
         <span class="k">Primary duty station</span>
-        <strong>Office of Academics</strong>
+        <strong>OJIX</strong>
         Head Office, Bengaluru
       </div>
     </div>
@@ -203,7 +203,7 @@
   <section class="lg-form-side">
     <div class="lg-form">
       <h2>Sign in</h2>
-      <p class="hint">Use the credentials issued by the Office of Academics.</p>
+      <p class="hint">Use the credentials issued by the OJIX.</p>
 
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% for category, message in messages %}
@@ -256,7 +256,7 @@
       </div>
 
       <div class="lg-foot">
-        Office of Academics · JAIN (Deemed-to-be University)<br>
+        OJIX Engineering & Technology LLP<br>
         Head Office, Bengaluru · Attendance Portal
       </div>
     </div>

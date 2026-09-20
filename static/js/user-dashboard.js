@@ -1,7 +1,7 @@
 // ═══════════════════════════════
 //  DUTY STATION NAMING (single source of truth)
 // ═══════════════════════════════
-const OFFICE_NAME  = 'Office of Academics · Head Office';
+const OFFICE_NAME  = 'OJIX · Head Office';
 const OFFICE_SHORT = 'Head Office';
 
 // ═══════════════════════════════
@@ -259,7 +259,7 @@ function updateLocBanners(state, addr, dist){
     if(coordsText){
       const addrStr = (locState.address && !locState.address.startsWith("Location:") && !locState.address.startsWith("Lat:")) ? locState.address : '';
       if(addrStr) {
-        coordsText.innerHTML = `<i class="fas fa-location-dot" style="color:var(--accent,#0071e3)"></i> <strong>${addrStr}</strong> <span style="opacity:0.75;margin-left:6px;">(${locState.lat.toFixed(6)}, ${locState.lng.toFixed(6)})</span>`;
+        coordsText.innerHTML = `<i class="fas fa-location-dot" style="color:var(--accent-500)"></i> <strong>${addrStr}</strong> <span style="opacity:0.75;margin-left:6px;">(${locState.lat.toFixed(6)}, ${locState.lng.toFixed(6)})</span>`;
       } else {
         coordsText.textContent = `Location: ${locState.lat.toFixed(6)}, ${locState.lng.toFixed(6)}`;
       }
@@ -295,11 +295,11 @@ function renderUserMap(lat, lng, officeLat, officeLng){
       const targetOffLat = officeLat || 12.9248224;
       const targetOffLng = officeLng || 77.5702351;
       L.circle([targetOffLat, targetOffLng], {
-        color: '#0071e3',
-        fillColor: '#0071e3',
+        color: '#C9662F',
+        fillColor: '#C9662F',
         fillOpacity: 0.1,
         radius: 500
-      }).addTo(userLeafletMap).bindPopup('<strong>JAIN Head Office</strong><br>500m Campus Zone');
+      }).addTo(userLeafletMap).bindPopup('<strong>OJIX Head Office</strong><br>500m Campus Zone');
     } else {
       userLeafletMap.setView([lat, lng], 16);
     }
@@ -894,7 +894,7 @@ function renderHist(list,id){
           <span class="oa-tag ${h.at_office?'ok':''}" style="margin-left:6px">${h.at_office?'Head Office':'Off site'}</span>
         </div>
         <div class="times">${h.login_time} \u2192 ${open?'still on duty':h.logout_time}</div>
-        ${locStr ? `<div style="font-size:0.75rem;color:var(--t2);margin-top:3px;"><i class="fas fa-location-dot" style="color:var(--accent,#0071e3)"></i> <strong>Logged in Location:</strong> ${locStr}</div>` : ''}
+        ${locStr ? `<div style="font-size:0.75rem;color:var(--t2);margin-top:3px;"><i class="fas fa-location-dot" style="color:var(--accent-500)"></i> <strong>Logged in Location:</strong> ${locStr}</div>` : ''}
       </div>
       <div class="hrs">${h.hours}h</div>
     </div>`;
@@ -920,10 +920,10 @@ function switchStatsPeriod(period){
   const btnW = document.getElementById('btnStatsWeek');
   const btnM = document.getElementById('btnStatsMonth');
   if(period === 'week'){
-    btnW.style.background = 'var(--blue)'; btnW.style.color = 'white'; btnW.style.fontWeight = '800';
+    btnW.style.background = 'var(--accent-500)'; btnW.style.color = 'white'; btnW.style.fontWeight = '800';
     btnM.style.background = 'transparent'; btnM.style.color = 'var(--t2)'; btnM.style.fontWeight = '700';
   } else {
-    btnM.style.background = 'var(--blue)'; btnM.style.color = 'white'; btnM.style.fontWeight = '800';
+    btnM.style.background = 'var(--accent-500)'; btnM.style.color = 'white'; btnM.style.fontWeight = '800';
     btnW.style.background = 'transparent'; btnW.style.color = 'var(--t2)'; btnW.style.fontWeight = '700';
   }
   loadStats();
@@ -972,7 +972,7 @@ async function installPWA(){
     deferredPwaPrompt.prompt();
     const { outcome } = await deferredPwaPrompt.userChoice;
     if(outcome === 'accepted'){
-      toast('✅ JAIN Portal App Installed!','ok');
+      toast('✅ OJIX Portal App Installed!','ok');
       document.getElementById('pwaBanner').style.display = 'none';
     }
     deferredPwaPrompt = null;
@@ -1044,7 +1044,7 @@ function calTap(ds){
             <i class="fas fa-location-dot" style="color:var(--bad)"></i> <strong>Signed out:</strong> ${loc(h.logout_address)}
           </div>`}
           ${h.work_comment?`<div style="font-size:.78rem;color:var(--t1);margin-top:8px;padding-top:8px;border-top:1px dashed var(--line-2);white-space:pre-wrap">
-            <i class="fas fa-note-sticky" style="color:var(--gold-600)"></i> ${esc(h.work_comment)}
+            <i class="fas fa-note-sticky" style="color:var(--accent-600)"></i> ${esc(h.work_comment)}
           </div>`:''}
         </div>
       </div>`;

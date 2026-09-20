@@ -17,7 +17,7 @@ const CACHE = 'ooa-attendance-v3';
 const PRECACHE = [
   '/static/css/oa-core.css',
   '/static/css/oa-components.css',
-  '/static/images/applogo.png',
+  '/static/images/ojix-icon-512.png',
   '/static/manifest.json'
 ];
 

@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>{{ title }} · Office of Academics</title>
-<meta name="theme-color" content="#0A1324">
+<title>{{ title }} · OJIX</title>
+<meta name="theme-color" content="#0F1C2E">
 <meta name="robots" content="noindex, nofollow">
-<link rel="icon" type="image/png" href="{{ url_for('static', filename='images/applogo.png') }}">
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='images/ojix-icon-512.png') }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/oa-core.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/oa-components.css') }}">
@@ -19,28 +19,28 @@
   .ov-mast { background: var(--ink-800); color: #fff; border-radius: var(--r-xl); padding: 24px 26px; margin-bottom: 20px;
              display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
   .ov-mast img { width: 44px; height: 44px; border-radius: 12px; }
-  .ov-mast .org { font-size: .62rem; font-weight: 800; letter-spacing: .16em; color: var(--gold-400); text-transform: uppercase; }
-  .ov-mast h1 { font-family: "Playfair Display", serif; font-size: 1.4rem; margin: 2px 0 0; color: #fff; }
+  .ov-mast .org { font-size: .62rem; font-weight: 800; letter-spacing: .16em; color: var(--accent-400); text-transform: uppercase; }
+  .ov-mast h1 { font-family: var(--display); font-size: 1.4rem; margin: 2px 0 0; color: #fff; }
   .ov-mast .spacer { flex: 1; }
   .ov-live { font-size: .62rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
-             background: rgba(238,189,27,.16); color: var(--gold-400); padding: 5px 11px; border-radius: 999px; }
+             background: rgba(238,189,27,.16); color: var(--accent-400); padding: 5px 11px; border-radius: 999px; }
   .ov-ctrl { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
   .ov-ctrl input[type=date] { font-family: var(--mono); }
   .ov-btn { background: #fff; border: 1px solid var(--line); border-radius: var(--r-sm); padding: 8px 13px;
             font-size: .78rem; font-weight: 700; color: var(--t1); cursor: pointer; }
-  .ov-btn:hover { border-color: var(--gold-500); }
-  .ov-dl { background: var(--gold-500); color: var(--ink-800); font-weight: 800; border: none; border-radius: var(--r-sm);
+  .ov-btn:hover { border-color: var(--accent-500); }
+  .ov-dl { background: var(--accent-500); color: var(--ink-800); font-weight: 800; border: none; border-radius: var(--r-sm);
            padding: 9px 14px; font-size: .78rem; display: inline-flex; align-items: center; gap: 7px; text-decoration: none; }
-  .ov-dl:hover { background: var(--gold-400); }
+  .ov-dl:hover { background: var(--accent-400); }
   .ov-daylabel { font-family: var(--mono); font-size: .8rem; color: var(--t2); margin-left: auto; }
   .ov-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px,1fr)); gap: 10px; margin-bottom: 18px; }
   .ov-kpi { background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--line-2); border-radius: 12px; padding: 12px 14px; }
   .ov-kpi .n { font-family: var(--mono); font-size: 1.5rem; font-weight: 700; color: var(--t1); line-height: 1; }
   .ov-kpi .l { font-size: .58rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--t3); margin-top: 5px; }
-  .ov-kpi.k-rate  { border-left-color: #B0740A; }
+  .ov-kpi.k-rate  { border-left-color: #974C23; }
   .ov-kpi.k-in    { border-left-color: #2E7D46; }
   .ov-kpi.k-out   { border-left-color: #C0362C; }
-  .ov-kpi.k-leave { border-left-color: #8F98A6; }
+  .ov-kpi.k-leave { border-left-color: #8F99A6; }
   .ov-kpi.k-off   { border-left-color: #B8BEC7; }
   .ov-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
   @media (max-width: 720px) { .ov-cols { grid-template-columns: 1fr; } }
@@ -60,21 +60,21 @@
   .ov-loc a { color: var(--ink-600); font-weight: 600; white-space: nowrap; }
   .ov-locbadge { font-size: .58rem; font-weight: 800; letter-spacing: .04em; padding: 1px 7px; border-radius: 999px; }
   .ov-locbadge.office { background: #E8F5EC; color: #1E7D46; }
-  .ov-locbadge.remote { background: #FCF3E2; color: #B0740A; }
+  .ov-locbadge.remote { background: #F9ECE5; color: #974C23; }
   .ov-chip { font-size: .74rem; font-weight: 600; padding: 4px 10px; border-radius: 999px; display: inline-block; }
   .ov-chip.out   { background: #FCEBEA; color: #8A3833; border: 1px solid #E7B4AF; }
-  .ov-chip.leave { background: #EEF0F3; color: #5D6470; border: 1px solid #D3D8DF; }
+  .ov-chip.leave { background: #EEF0F3; color: #5D6570; border: 1px solid #D3D8DF; }
   .ov-chip.off   { background: var(--paper-2); color: var(--t2); }
   .ov-chips { padding: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
   .ov-empty-row { text-align: center; color: var(--t3); font-size: .78rem; padding: 14px 0; }
   .ov-namelist { display: flex; flex-wrap: wrap; gap: 8px; }
   .ov-name { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px 6px 6px; border: 1px solid var(--line);
              border-radius: 999px; background: #fff; cursor: pointer; font-size: .78rem; font-weight: 600; color: var(--t1); }
-  .ov-name:hover { border-color: var(--gold-500); }
-  .ov-name .av { width: 24px; height: 24px; border-radius: 50%; background: var(--ink-800); color: var(--gold-400);
+  .ov-name:hover { border-color: var(--accent-500); }
+  .ov-name .av { width: 24px; height: 24px; border-radius: 50%; background: var(--ink-800); color: var(--accent-400);
                  display: inline-flex; align-items: center; justify-content: center; font-size: .7rem; font-weight: 800; }
-  .ov-weeknote { background: var(--gold-050); border: 1px solid var(--gold-400); border-radius: var(--r-sm); padding: 10px 14px;
-                 font-size: .76rem; color: var(--gold-600); font-weight: 700; margin-bottom: 16px; }
+  .ov-weeknote { background: var(--accent-050); border: 1px solid var(--accent-400); border-radius: var(--r-sm); padding: 10px 14px;
+                 font-size: .76rem; color: var(--accent-600); font-weight: 700; margin-bottom: 16px; }
   .ov-foot { margin-top: 30px; font-size: .72rem; color: var(--t3); text-align: center; }
 
   /* calendar modal (reused look) */
@@ -82,7 +82,7 @@
   .ov-modal.on { display: flex; }
   .ov-modal-box { background: #fff; border-radius: var(--r-xl); width: 100%; max-width: 680px; max-height: 88vh; overflow-y: auto; }
   .ov-modal-head { position: sticky; top: 0; background: #fff; display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--line); }
-  .ov-modal-head h3 { font-family: "Playfair Display", serif; font-size: 1.1rem; flex: 1; color: var(--ink-800); }
+  .ov-modal-head h3 { font-family: var(--display); font-size: 1.1rem; flex: 1; color: var(--ink-800); }
   .ov-modal-body { padding: 18px 20px 22px; }
   .cal-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px,1fr)); gap: 8px; margin-bottom: 14px; }
   .cal-stat { padding: 9px; text-align: center; background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-sm); }
@@ -97,11 +97,11 @@
   .cal-num { font-size: .72rem; font-weight: 700; color: var(--t2); }
   .cal-hrs { font-family: var(--mono); font-size: .58rem; font-weight: 700; align-self: flex-end; }
   .cal-cell.met  { background: #E8F5EC; border-color: #A7D8B8; } .cal-cell.met .cal-num, .cal-cell.met .cal-hrs { color: #1E7D46; }
-  .cal-cell.part { background: #FCF3E2; border-color: #EAD3A0; } .cal-cell.part .cal-num, .cal-cell.part .cal-hrs { color: #B0740A; }
+  .cal-cell.part { background: #F9ECE5; border-color: #E9BBA1; } .cal-cell.part .cal-num, .cal-cell.part .cal-hrs { color: #974C23; }
   .cal-cell.absent { background: #FCEBEA; border-color: #E7B4AF; } .cal-cell.absent .cal-num { color: #B7302A; }
   .cal-cell.leave  { background: #EEF0F3; border-color: #D3D8DF; } .cal-cell.leave .cal-num { color: #6B7480; }
-  .cal-cell.holiday { background: repeating-linear-gradient(45deg,#F2F1EE,#F2F1EE 4px,#E9E7E2 4px,#E9E7E2 8px); border-color: #DAD7D0; } .cal-cell.holiday .cal-num { color: #9AA0A8; }
-  .cal-cell.optional { background: #FCF7EA; border-color: #E9DCB8; } .cal-cell.optional .cal-num { color: #A98A2E; }
+  .cal-cell.holiday { background: repeating-linear-gradient(45deg,#F2EFEE,#F2EFEE 4px,#E9E4E2 4px,#E9E4E2 8px); border-color: #DAD4D0; } .cal-cell.holiday .cal-num { color: #9AA0A8; }
+  .cal-cell.optional { background: #FAF1EC; border-color: #E9CAB8; } .cal-cell.optional .cal-num { color: #A95A2E; }
   .cal-cell.off { border-color: transparent; } .cal-cell.off .cal-num { color: var(--t3); opacity: .5; }
 
   /* day-by-day table + legend inside the per-person modal */
@@ -109,10 +109,10 @@
   .cal-legend-row span { display: inline-flex; align-items: center; gap: 6px; }
   .cal-key { width: 12px; height: 12px; border-radius: 4px; border: 1px solid var(--line-2); }
   .cal-key.met { background: #E8F5EC; border-color: #A7D8B8; }
-  .cal-key.part { background: #FCF3E2; border-color: #EAD3A0; }
+  .cal-key.part { background: #F9ECE5; border-color: #E9BBA1; }
   .cal-key.absent { background: #FCEBEA; border-color: #E7B4AF; }
   .cal-key.leave { background: #EEF0F3; border-color: #D3D8DF; }
-  .cal-key.optional { background: #FCF7EA; border-color: #E9DCB8; }
+  .cal-key.optional { background: #FAF1EC; border-color: #E9CAB8; }
   .cal-tblhead { font-weight: 700; font-size: .84rem; color: var(--ink-800); margin: 16px 0 8px; }
   .cal-tbl-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r-sm); }
   .cal-tbl { width: 100%; border-collapse: collapse; font-size: .74rem; }
@@ -121,19 +121,19 @@
   .cal-tbl td { padding: 6px 9px; border-top: 1px solid var(--line); color: var(--t1); vertical-align: top; }
   .cal-tbl td:nth-child(-n+6) { white-space: nowrap; }
   .cal-tbl tr.met { background: #E8F5EC; } .cal-tbl tr.met td { color: #1E7D46; }
-  .cal-tbl tr.part { background: #FCF3E2; } .cal-tbl tr.part td { color: #B0740A; }
+  .cal-tbl tr.part { background: #F9ECE5; } .cal-tbl tr.part td { color: #974C23; }
   .cal-tbl tr.absent { background: #FCEBEA; } .cal-tbl tr.absent td { color: #B7302A; font-weight: 700; }
   .cal-tbl tr.leave { background: #EEF0F3; } .cal-tbl tr.leave td { color: #6B7480; }
-  .cal-tbl tr.holiday, .cal-tbl tr.optional { background: #FCF7EA; }
-  .cal-tbl tr.holiday td, .cal-tbl tr.optional td { color: #A98A2E; }
+  .cal-tbl tr.holiday, .cal-tbl tr.optional { background: #FAF1EC; }
+  .cal-tbl tr.holiday td, .cal-tbl tr.optional td { color: #A95A2E; }
 </style>
 </head>
 <body>
 <div class="ov-wrap">
   <div class="ov-mast">
-    <img src="{{ url_for('static', filename='images/applogo.png') }}" alt="">
+    <img src="{{ url_for('static', filename='images/ojix-icon-512.png') }}" alt="">
     <div>
-      <div class="org">Office of Academics · Live analysis</div>
+      <div class="org">OJIX · Live analysis</div>
       <h1>{{ title }}</h1>
     </div>
     <span class="spacer"></span>
@@ -196,22 +196,22 @@
 
   <div class="ov-cols">
     <div class="ov-col">
-      <div class="ov-col-head"><i class="fas fa-plane-departure" style="color:#8F98A6"></i> On leave <span class="c" id="ovLeaveCount">0</span></div>
+      <div class="ov-col-head"><i class="fas fa-plane-departure" style="color:#8F99A6"></i> On leave <span class="c" id="ovLeaveCount">0</span></div>
       <div class="ov-chips" id="ovLeaveList"></div>
     </div>
     <div class="ov-col">
-      <div class="ov-col-head"><i class="fas fa-mug-hot" style="color:#8F98A6"></i> Off / weekend <span class="c" id="ovOffCount">0</span></div>
+      <div class="ov-col-head"><i class="fas fa-mug-hot" style="color:#8F99A6"></i> Off / weekend <span class="c" id="ovOffCount">0</span></div>
       <div class="ov-chips" id="ovOffList"></div>
     </div>
   </div>
 
   <div class="ov-col">
-    <div class="ov-col-head"><i class="fas fa-calendar-days" style="color:var(--gold-600)"></i> Per-person calendar — click a name</div>
+    <div class="ov-col-head"><i class="fas fa-calendar-days" style="color:var(--accent-600)"></i> Per-person calendar — click a name</div>
     <div class="ov-col-body"><div class="ov-namelist" id="ovNames"></div></div>
   </div>
 
   <div class="ov-foot">
-    Shared from the JAIN Attendance Portal{% if created_by %} by {{ created_by }}{% endif %}. Live, read-only — no login required.
+    Shared from the OJIX Attendance Portal{% if created_by %} by {{ created_by }}{% endif %}. Live, read-only — no login required.
   </div>
 </div>
 
@@ -335,7 +335,7 @@
       else if (wd === 0) cls = 'holiday';
       else if (wd === 6) cls = 'optional';
       else cls = 'absent';
-      const ring = ds === selected ? 'border:2px solid var(--gold-500);' : '';
+      const ring = ds === selected ? 'border:2px solid var(--accent-500);' : '';
       cells += `<div class="cal-cell ${cls}" style="cursor:pointer;${ring}" title="${n} signed in" onclick="ovSet('${ds}')">
                   <span class="cal-num">${d}</span>${n ? `<span class="cal-hrs">${n}</span>` : ''}
                 </div>`;
@@ -483,8 +483,8 @@
     const s = data.summary || {};
     document.getElementById('ovCalSummary').innerHTML = [
       { n: s.present??0, l:'Worked', c:'#1E7D46' }, { n: s.absent??0, l:'Absent', c:'#C0362C' },
-      { n: s.leave??0, l:'Leave', c:'#8F98A6' }, { n:(s.total_hours??0)+'h', l:'Hours', c:'var(--ink-800)' },
-      { n:(s.attendance_rate??0)+'%', l:'Rate', c:'#B0740A' },
+      { n: s.leave??0, l:'Leave', c:'#8F99A6' }, { n:(s.total_hours??0)+'h', l:'Hours', c:'var(--ink-800)' },
+      { n:(s.attendance_rate??0)+'%', l:'Rate', c:'#974C23' },
     ].map(x=>`<div class="cal-stat"><div class="n" style="color:${x.c}">${x.n}</div><div class="l">${x.l}</div></div>`).join('');
     const map = {}; (data.timeline||[]).forEach(t=>map[t.date]=t);
     document.getElementById('ovCalBody').innerHTML = (data.months||[]).map(mo=>ovMonth(mo,map)).join('')

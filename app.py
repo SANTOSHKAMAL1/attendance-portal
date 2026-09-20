@@ -35,7 +35,7 @@ app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', 'wedbfepklgtwtugf'
 app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_USERNAME', 'info.loginpanel@gmail.com')
 
 GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY', '')
-ADMIN_EMAIL = 'admin@jainuniversity.ac.in'
+ADMIN_EMAIL = 'admin@ojix.in'
 
 mongo_uri = app.config.get("MONGO_URI", "")
 if mongo_uri and "connectTimeoutMS" not in mongo_uri:
@@ -64,7 +64,7 @@ mail = Mail(app)
 #  PRIMARY DUTY STATION
 #  Every "where are you" label in the product comes from here.
 # ─────────────────────────────────────────────────────────────
-OFFICE_NAME  = "Office of Academics \u00b7 Head Office"
+OFFICE_NAME  = "OJIX"
 OFFICE_SHORT = "Head Office"
 OFFICE_CITY  = "Bengaluru"
 
@@ -396,7 +396,7 @@ def get_address_from_coords(lat, lng, timeout=1.5):
 
     # Fallback to OpenStreetMap Nominatim with fast 1.5s timeout
     try:
-        headers = {'User-Agent': 'JainAttendanceApp/1.0 (contact@jainuniversity.ac.in)'}
+        headers = {'User-Agent': 'OjixAttendanceApp/1.0 (contact@ojix.in)'}
         url = f"https://nominatim.openstreetmap.org/reverse?format=json&lat={lat}&lon={lng}&zoom=18&addressdetails=1"
         response = requests.get(url, headers=headers, timeout=timeout)
         if response.status_code == 200:
@@ -413,7 +413,7 @@ def get_address_from_coords(lat, lng, timeout=1.5):
     # Asynchronously resolve in background so API response is instant
     def _async_geocode(l_lat, l_lng, c_key):
         try:
-            headers = {'User-Agent': 'JainAttendanceApp/1.0 (contact@jainuniversity.ac.in)'}
+            headers = {'User-Agent': 'OjixAttendanceApp/1.0 (contact@ojix.in)'}
             url = f"https://nominatim.openstreetmap.org/reverse?format=json&lat={l_lat}&lon={l_lng}&zoom=18&addressdetails=1"
             res = requests.get(url, headers=headers, timeout=5)
             if res.status_code == 200:
@@ -963,7 +963,7 @@ def attendance_login():
         if not user.get("shift_login_enabled", False):
             return jsonify({
                 "error": "Shift attendance is not enabled for your account. "
-                         "Ask the Office of Academics to switch it on."
+                         "Ask the OJIX to switch it on."
             }), 403
 
         existing_shift = mongo.db.attendance.find_one({
@@ -1043,7 +1043,7 @@ def attendance_login():
             ]
             quote = random.choice(quotes)
             
-            logo_path = os.path.join(app.static_folder, 'images', 'applogo.png')
+            logo_path = os.path.join(app.static_folder, 'images', 'ojix-icon-512.png')
             logo_b64 = ""
             try:
                 with open(logo_path, 'rb') as lf:
@@ -1051,7 +1051,7 @@ def attendance_login():
             except Exception:
                 pass
 
-            logo_img_tag = f'<img src="data:image/png;base64,{logo_b64}" alt="JAIN Logo" style="height: 48px; width: auto; vertical-align: middle; margin-right: 12px;">' if logo_b64 else ''
+            logo_img_tag = f'<img src="data:image/png;base64,{logo_b64}" alt="OJIX logo" style="height: 48px; width: auto; vertical-align: middle; margin-right: 12px;">' if logo_b64 else ''
 
             msg = Message(f"Attendance Recorded · {shift_name}", recipients=[user_email])
             msg.html = f"""
@@ -1061,23 +1061,23 @@ def attendance_login():
               <meta charset="utf-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
             </head>
-            <body style="margin: 0; padding: 0; background-color: #f4f6f8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1c1c1e;">
-              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f4f6f8; padding: 30px 15px;">
+            <body style="margin: 0; padding: 0; background-color: #F4F6F8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1C1D1E;">
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F4F6F8; padding: 30px 15px;">
                 <tr>
                   <td align="center">
-                    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 580px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.08);">
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 580px; background-color: #FFFFFF; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.08);">
                       
                       <!-- Header -->
                       <tr>
-                        <td style="background-color: #0A1324; padding: 24px 30px;">
+                        <td style="background-color: #0F1C2E; padding: 24px 30px;">
                           <table border="0" cellpadding="0" cellspacing="0" width="100%">
                             <tr>
                               <td style="vertical-align: middle; width: 60px;">
                                 {logo_img_tag}
                               </td>
                               <td style="vertical-align: middle;">
-                                <div style="color: #ffffff; font-size: 15px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">OFFICE OF ACADEMICS</div>
-                                <div style="color: rgba(255,255,255,0.7); font-size: 12px; margin-top: 2px;">JAIN (Deemed-to-be University) · Head Office</div>
+                                <div style="color: #FFFFFF; font-size: 15px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">OJIX</div>
+                                <div style="color: rgba(255,255,255,0.7); font-size: 12px; margin-top: 2px;">OJIX Engineering & Technology LLP</div>
                               </td>
                             </tr>
                           </table>
@@ -1087,43 +1087,43 @@ def attendance_login():
                       <!-- Body -->
                       <tr>
                         <td style="padding: 32px 30px 24px 30px;">
-                          <div style="display: inline-block; background-color: #e8f5e9; color: #2e7d32; font-size: 12px; font-weight: 700; padding: 5px 14px; border-radius: 20px; text-transform: uppercase; margin-bottom: 16px;">
+                          <div style="display: inline-block; background-color: #E8F5E9; color: #2E7D32; font-size: 12px; font-weight: 700; padding: 5px 14px; border-radius: 20px; text-transform: uppercase; margin-bottom: 16px;">
                             ✓ Attendance Recorded
                           </div>
                           
-                          <h1 style="font-size: 20px; font-weight: 700; color: #0A1324; margin: 0 0 12px 0;">Hello {current_user.username},</h1>
-                          <p style="font-size: 14px; line-height: 1.5; color: #48484a; margin: 0 0 20px 0;">
+                          <h1 style="font-size: 20px; font-weight: 700; color: #0F1C2E; margin: 0 0 12px 0;">Hello {current_user.username},</h1>
+                          <p style="font-size: 14px; line-height: 1.5; color: #48494A; margin: 0 0 20px 0;">
                             Your attendance sign-in has been successfully registered on the <strong>Attendance Portal</strong>.
                           </p>
 
                           <!-- Attendance Details Card -->
-                          <div style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 12px; padding: 18px; margin-bottom: 20px;">
+                          <div style="background-color: #F8F9FA; border: 1px solid #E9ECEF; border-radius: 12px; padding: 18px; margin-bottom: 20px;">
                             <table border="0" cellpadding="0" cellspacing="0" width="100%">
                               <tr>
-                                <td style="padding: 6px 0; font-size: 13px; color: #6c757d; font-weight: 600;">Signed in User</td>
-                                <td style="padding: 6px 0; font-size: 13px; color: #0A1324; font-weight: 700; text-align: right;">{current_user.username}</td>
+                                <td style="padding: 6px 0; font-size: 13px; color: #6C737D; font-weight: 600;">Signed in User</td>
+                                <td style="padding: 6px 0; font-size: 13px; color: #0F1C2E; font-weight: 700; text-align: right;">{current_user.username}</td>
                               </tr>
                               <tr>
-                                <td style="padding: 6px 0; font-size: 13px; color: #6c757d; font-weight: 600; border-top: 1px dashed #e9ecef;">Session / Shift</td>
-                                <td style="padding: 6px 0; font-size: 13px; color: #0071e3; font-weight: 700; text-align: right; border-top: 1px dashed #e9ecef;">{shift_name}</td>
+                                <td style="padding: 6px 0; font-size: 13px; color: #6C737D; font-weight: 600; border-top: 1px dashed #E9ECEF;">Session / Shift</td>
+                                <td style="padding: 6px 0; font-size: 13px; color: #C9662F; font-weight: 700; text-align: right; border-top: 1px dashed #E9ECEF;">{shift_name}</td>
                               </tr>
                               <tr>
-                                <td style="padding: 6px 0; font-size: 13px; color: #6c757d; font-weight: 600; border-top: 1px dashed #e9ecef;">Sign-In Time (IST)</td>
-                                <td style="padding: 6px 0; font-size: 13px; color: #0A1324; font-weight: 700; text-align: right; border-top: 1px dashed #e9ecef;">{format_ist_time(now_utc)}</td>
+                                <td style="padding: 6px 0; font-size: 13px; color: #6C737D; font-weight: 600; border-top: 1px dashed #E9ECEF;">Sign-In Time (IST)</td>
+                                <td style="padding: 6px 0; font-size: 13px; color: #0F1C2E; font-weight: 700; text-align: right; border-top: 1px dashed #E9ECEF;">{format_ist_time(now_utc)}</td>
                               </tr>
                               <tr>
-                                <td style="padding: 6px 0; font-size: 13px; color: #6c757d; font-weight: 600; border-top: 1px dashed #e9ecef;">Logged Location</td>
-                                <td style="padding: 6px 0; font-size: 12px; color: #212529; font-weight: 600; text-align: right; border-top: 1px dashed #e9ecef; max-width: 220px;">{address}</td>
+                                <td style="padding: 6px 0; font-size: 13px; color: #6C737D; font-weight: 600; border-top: 1px dashed #E9ECEF;">Logged Location</td>
+                                <td style="padding: 6px 0; font-size: 12px; color: #212429; font-weight: 600; text-align: right; border-top: 1px dashed #E9ECEF; max-width: 220px;">{address}</td>
                               </tr>
                             </table>
                           </div>
 
                           <!-- Daily Quote -->
-                          <div style="border-left: 3px solid #0071e3; background-color: #f0f7ff; padding: 12px 16px; border-radius: 0 8px 8px 0; margin-bottom: 20px;">
-                            <p style="font-size: 13px; font-style: italic; color: #1d60a1; margin: 0;">"{quote}"</p>
+                          <div style="border-left: 3px solid #C9662F; background-color: #F4F7FB; padding: 12px 16px; border-radius: 0 8px 8px 0; margin-bottom: 20px;">
+                            <p style="font-size: 13px; font-style: italic; color: #2F578F; margin: 0;">"{quote}"</p>
                           </div>
 
-                          <p style="font-size: 12px; color: #6c757d; margin: 0; line-height: 1.4;">
+                          <p style="font-size: 12px; color: #6C737D; margin: 0; line-height: 1.4;">
                             If you did not initiate this sign-in, please inform your team administrator.
                           </p>
                         </td>
@@ -1131,9 +1131,9 @@ def attendance_login():
 
                       <!-- Footer -->
                       <tr>
-                        <td style="background-color: #f8f9fa; border-top: 1px solid #e9ecef; padding: 18px 30px; text-align: center;">
-                          <div style="font-size: 12px; font-weight: 600; color: #495057;">Office of Academics · JAIN (Deemed-to-be University)</div>
-                          <div style="font-size: 11px; color: #868e96; margin-top: 3px;">Head Office, Bengaluru · Attendance Portal</div>
+                        <td style="background-color: #F8F9FA; border-top: 1px solid #E9ECEF; padding: 18px 30px; text-align: center;">
+                          <div style="font-size: 12px; font-weight: 600; color: #494F57;">OJIX Engineering & Technology LLP</div>
+                          <div style="font-size: 11px; color: #868D96; margin-top: 3px;">Head Office, Bengaluru · Attendance Portal</div>
                         </td>
                       </tr>
 
@@ -2755,14 +2755,14 @@ def build_person_rows(data):
 
 
 def _stamp_logo(ws, anchor="A1"):
-    """Drop the JAIN mark into a sheet's title band.
+    """Drop the OJIX mark into a sheet's title band.
 
     Embedding needs Pillow; if it (or the file) is missing we skip the logo
     rather than fail the download — the numbers matter more than the badge.
     """
     try:
         from openpyxl.drawing.image import Image as XLImage
-        path = os.path.join(app.static_folder, "images", "jain.png")
+        path = os.path.join(app.static_folder, "images", "ojix-mark.png")
         if not os.path.exists(path):
             return
         img = XLImage(path)
