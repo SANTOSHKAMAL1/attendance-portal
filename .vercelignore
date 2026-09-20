@@ -1,0 +1,14 @@
+# Keep the function bundle small — it shares a 250 MB unzipped budget
+# with site-packages, and OpenCV + NumPy already claim ~210 MB of it.
+CHANGES.md
+README.md
+Procfile
+runtime.txt
+admin.py
+ensure_admin.py
+reset_admin_password.py
+__pycache__/
+*.py[cod]
+.env
+*.env
+.env.*
