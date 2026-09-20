@@ -604,7 +604,7 @@
                             </div>
                             <div style="display:flex;gap:8px;align-items:center;">
                                 <span class="badge" style="background:${l.shift_type==='shift1'?'#C9662F':l.shift_type==='shift2'?'#CF6930':'#86888B'};color:white;">${l.shift_name}</span>
-                                ${faceRequired ? '<span class="badge" style="background:rgba(0,113,227,0.15);color:#C9662F;border:1px solid rgba(0,113,227,0.3);">🔒 Face ID</span>' : ''}
+                                ${faceRequired ? '<span class="badge" style="background:rgba(201,102,47,0.15);color:#C9662F;border:1px solid rgba(201,102,47,0.3);">🔒 Face ID</span>' : ''}
                                 ${hasCoords ? `<a href="${googleMapsUrl}" target="_blank" class="btn btn-sm btn-primary" style="padding:4px 10px;font-size:0.75rem;text-decoration:none;"><i class="fas fa-map-marked-alt"></i> Open Google Maps</a>` : ''}
                             </div>
                         </div>

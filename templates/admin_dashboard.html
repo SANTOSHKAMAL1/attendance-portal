@@ -28,9 +28,9 @@
   <!-- ══ LEFT RAIL ════════════════════════════════════════════ -->
   <aside class="oa-rail">
     <div class="oa-rail-head">
-      <img src="{{ url_for('static', filename='images/ojix-icon-512.png') }}" alt="">
+      <div class="ojix-mark signature"><div class="ojix-rule"></div><div class="ojix-word">OJI<x>X</x></div></div>
       <div>
-        <div class="org">OJIX</div>
+        <div class="org">Engineering &amp; Technology LLP</div>
         <div class="sub">Admin console</div>
       </div>
     </div>
@@ -48,7 +48,7 @@
       <button class="oa-navitem danger" onclick="logout()"><i class="fas fa-arrow-right-from-bracket"></i> Sign out</button>
     </nav>
     <div class="oa-rail-foot">
-      Signed in as <strong style="color:var(--accent-400)">{{ current_user.username }}</strong><br>
+      Signed in as <strong style="color:var(--accent-600)">{{ current_user.username }}</strong><br>
       OJIX, Bengaluru
     </div>
   </aside>
@@ -60,7 +60,7 @@
       <div class="org">ADMIN CONSOLE</div>
       <div class="sub">OJIX</div>
     </div>
-    <div class="oa-pill" style="background:rgba(238,189,27,.14)">
+    <div class="oa-pill" style="background:rgba(201,102,47,.14)">
       <i class="fas fa-user-shield"></i> {{ current_user.username }}
     </div>
     <button class="oa-btn oa-btn-sm oa-only-mobile" style="background:rgba(255,255,255,.1);color:var(--on-ink)" onclick="logout()">

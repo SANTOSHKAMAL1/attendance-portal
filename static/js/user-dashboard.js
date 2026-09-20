@@ -895,7 +895,7 @@ function scrollToLocationCard(){
   if(card){
     card.scrollIntoView({ behavior: 'smooth', block: 'center' });
     card.style.transition = 'box-shadow 0.4s ease';
-    card.style.boxShadow = '0 0 0 3px rgba(0, 113, 227, 0.4)';
+    card.style.boxShadow = '0 0 0 3px rgba(201, 102, 47, 0.4)';
     setTimeout(() => { card.style.boxShadow = ''; }, 2000);
   }
 }

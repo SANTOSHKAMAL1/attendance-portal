@@ -66,7 +66,7 @@
   background-image: repeating-linear-gradient(
     to bottom,
     transparent 0 27px,
-    rgba(238, 189, 27, .07) 27px 28px
+    rgba(201, 102, 47, .07) 27px 28px
   );
   pointer-events: none;
 }
@@ -276,7 +276,7 @@
 .oa-btn-primary { background: var(--ink-800); color: var(--on-ink); box-shadow: var(--sh-2); }
 .oa-btn-primary:hover:not(:disabled) { background: var(--ink-700); }
 
-.oa-btn-gold { background: var(--accent-500); color: var(--ink-800); box-shadow: 0 4px 14px rgba(238, 189, 27, .34); }
+.oa-btn-gold { background: var(--accent-500); color: var(--ink-800); box-shadow: 0 4px 14px rgba(201, 102, 47, .34); }
 .oa-btn-gold:hover:not(:disabled) { background: var(--accent-400); }
 
 .oa-btn-ok   { background: var(--ok);   color: #fff; }
@@ -581,7 +581,7 @@
 }
 .oa-toggle input:checked + .track { background: var(--ok); }
 .oa-toggle input:checked + .track::before { transform: translateX(19px); }
-.oa-toggle input:focus-visible + .track { box-shadow: 0 0 0 3px rgba(238, 189, 27, .5); }
+.oa-toggle input:focus-visible + .track { box-shadow: 0 0 0 3px rgba(201, 102, 47, .5); }
 
 .oa-toggle-row {
   display: flex;
@@ -810,7 +810,7 @@
 .oa-cam-oval {
   width: 54%;
   aspect-ratio: 3 / 4;
-  border: 2px dashed rgba(238, 189, 27, .8);
+  border: 2px dashed rgba(201, 102, 47, .8);
   border-radius: 50%;
   position: relative;
   overflow: hidden;
